@@ -1,0 +1,61 @@
+schema_variable_name: "claude_schema"
+
+# Only set if not using the default dbt-core/adapter version ranges
+# dbt_core_version: ">=1.3.0,<1.12.0"
+# dbt_adapter_versions:
+#   snowflake: ">=1.3.0,<2.0.0"
+#   bigquery: ">=1.3.0,<2.0.0"
+#   postgres: ">=1.3.0,<2.0.0"
+#   redshift: ">=1.3.0,<2.0.0"
+#   databricks: ">=1.6.0,<2.0.0"
+
+# Optional global settings
+include_databricks_sql: true
+include_sqlserver: true
+include_duckdb: true
+test_dbt_compile: enabled  # Set to disabled to skip dbt compile step (for repos not yet updated to pass)
+
+# Test scenarios - FIRST MUST BE DEFAULT WITH NO VARS
+test_scenarios:
+  # REQUIRED: Default scenario with no custom variables
+  - name: "Default"
+    vars: {}
+    include_incremental: false
+
+  # Additional scenarios with custom variables
+  - name: "Custom Schema Variable"
+    vars:
+      custom_var: "custom_value"
+      enable_feature_x: true
+    include_incremental: false
+    include_dbt_seed: false
+    warehouses: ["postgres", "snowflake", "bigquery"]
+
+  - name: "Alternative Table Names"
+    vars:
+      source_table_identifier: "alternative_table"
+      enable_feature_y: false
+    include_incremental: false
+
+  - name: "Minimal Features"
+    vars:
+      enable_feature_x: false
+      enable_feature_y: false
+      use_minimal_dataset: true
+    include_incremental: false
+    warehouses: ["postgres", "bigquery"]
+
+# Available optional parameters:
+# - schema_variable_name: (required) Variable name for schema in your dbt project
+# - additional_schema_variables: Array of additional schema variables for rollup packages
+# - include_databricks_sql: Whether to test Databricks SQL warehouse
+# - include_sqlserver: Whether to test SQL Server warehouse
+# - include_duckdb: Whether to test DuckDB warehouse
+# - include_dbt_compile: Whether to run dbt compile step (default: true, set to false for incomplete repos)
+# - dbt_core_version: dbt-core pip version constraint (default: ">=1.3.0,<1.12.0")
+# - dbt_adapter_versions: Per-warehouse dbt adapter pip version constraints (default: ">=1.3.0,<2.0.0", databricks default: ">=1.6.0,<2.0.0")
+# - include_incremental: Per-scenario incremental testing control
+# - include_dbt_seed: Re-seed CSVs with the scenario's vars before running (default: false)
+# - warehouses: Per-scenario warehouse limitation (array of warehouse names)
+# - vars: Custom dbt variables for the scenario
+# - test_branch: Branch of solution_analytics to clone for CI scripts (default: "main")

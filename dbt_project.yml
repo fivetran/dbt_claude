@@ -1,0 +1,25 @@
+name: 'claude'
+version: '0.1.0'
+config-version: 2
+require-dbt-version: [">=1.3.0", "<3.0.0"]
+
+models:
+  claude:
+    +schema: claude
+    +materialized: table
+    staging:
+      +schema: stg_claude
+      +materialized: view
+      tmp:
+        +materialized: view
+
+vars:
+  claude:
+    cost_report: "{{ source('claude', 'cost_report') }}"
+    enterprise_user_cost_report: "{{ source('claude', 'enterprise_user_cost_report') }}"
+    message_usage_report: "{{ source('claude', 'message_usage_report') }}"
+    enterprise_user_usage_report: "{{ source('claude', 'enterprise_user_usage_report') }}"
+    claude_code_usage_report: "{{ source('claude', 'claude_code_usage_report') }}"
+    claude_code_usage_report_model_breakdown: "{{ source('claude', 'claude_code_usage_report_model_breakdown') }}"
+    users: "{{ source('claude', 'users') }}"
+    enterprise_user_actor: "{{ source('claude', 'enterprise_user_actor') }}"

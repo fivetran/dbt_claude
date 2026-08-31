@@ -1,0 +1,265 @@
+version: 2
+
+models:
+  - name: stg_claude__cost_report
+    description: Staged organization-level cost report. Each row represents one billing line item for a given model, token type, and time period.
+    columns:
+      - name: cost_report_id
+        description: Fivetran-generated unique identifier for the row.
+        tests:
+          - not_null
+          - unique
+      - name: workspace_id
+        description: ID of the Workspace this cost is associated with.
+      - name: amount
+        description: Cost amount in whole currency units (for example, dollars). Converted in this model from the source value, which Anthropic reports in fractional cents.
+      - name: cost_type
+        description: Category of cost ("code_execution", "session_usage", "tokens", "web_search").
+      - name: starting_at
+        description: Start of the billing period.
+      - name: ending_at
+        description: End of the billing period.
+      - name: description
+        description: Human-readable description of the cost line item.
+      - name: token_type
+        description: Token type contributing to the cost ("cache_creation.ephemeral_1h_input_tokens", "cache_creation.ephemeral_5m_input_tokens", "cache_read_input_tokens", "output_tokens", "uncached_input_tokens").
+      - name: unit_type
+        description: Simplified grouping of token_type, derived in this model ("input", "cache_read", "cache_creation_5m", "cache_creation_1h", "output").
+      - name: model
+        description: Claude model associated with the cost.
+      - name: service_tier
+        description: Service tier applied to the request ("batch", "standard").
+      - name: currency
+        description: Currency code for the cost amount. Currently always "USD".
+      - name: context_window
+        description: Input context window used ("0-200k", "200k-1M").
+      - name: inference_geo
+        description: Geographic region where inference ran ("global", "not_available", "us").
+      - name: _fivetran_synced
+        description: "{{ doc('_fivetran_synced') }}"
+
+  - name: stg_claude__enterprise_user_cost_report
+    description: Staged per-user cost report for enterprise accounts. Each row represents cost for one actor over a time period.
+    columns:
+      - name: enterprise_user_cost_report_id
+        description: Fivetran-generated unique identifier for the row.
+        tests:
+          - not_null
+          - unique
+      - name: actor_user_id
+        description: Identifier of the `enterprise_user_actor`.
+      - name: product
+        description: Anthropic product surface that produced the cost ("chat", "claude_code", "cowork", "office_agent", "claude_in_chrome", "claude_design", "claude-tag" aka Claude in Slack, "other").
+      - name: amount
+        description: Amount (post-discount, pre-credit) in fractional cents (minor units).
+      - name: list_amount
+        description: List-price amount (pre-discount) in fractional cents.
+      - name: starting_date
+        description: Start of the reporting period (cast to date).
+      - name: ending_date
+        description: End of the reporting period (cast to date).
+      - name: cost_type
+        description: Category of cost ("code_execution", "tokens", "web_search").
+      - name: token_type
+        description: Token type contributing to the cost ("cache_creation.ephemeral_1h_input_tokens", "cache_creation.ephemeral_5m_input_tokens", "cache_read_input_tokens", "output_tokens", "uncached_input_tokens").
+      - name: data_refreshed_at
+        description: Timestamp of the export this response was served from. Data is typically refreshed every 4 hours but not final until about 30 days after the usage date (late-arriving events, reconciliation adjustments).
+      - name: speed
+        description: Inference speed tier ("fast", "standard").
+      - name: organization_id
+        description: Identifier of the organization.
+      - name: model
+        description: Claude model associated with the cost.
+      - name: currency
+        description: Currency code for the cost amount. Currently always "USD".
+      - name: context_window
+        description: Input context window used ("0-200k", "200k-1M").
+      - name: inference_geo
+        description: Geographic region where inference ran ("global", "not_available", "us").
+      - name: _fivetran_synced
+        description: "{{ doc('_fivetran_synced') }}"
+
+  - name: stg_claude__message_usage_report
+    description: Staged API message usage report. Each row represents token usage for one API request bucket.
+    columns:
+      - name: message_usage_report_id
+        description: Fivetran-generated unique identifier.
+        tests:
+          - not_null
+          - unique
+      - name: api_key_id
+        description: Identifier of the API key used.
+      - name: workspace_id
+        description: Identifier of the workspace.
+      - name: cache_creation_ephemeral_1_h_input_token
+        description: Tokens used to create 1-hour ephemeral cache entries.
+      - name: cache_creation_ephemeral_5_m_input_token
+        description: Tokens used to create 5-minute ephemeral cache entries.
+      - name: starting_at
+        description: Start of the usage period (cast to DATE).
+      - name: ending_at
+        description: End of the usage period (cast to DATE).
+      - name: output_token
+        description: Number of output tokens generated.
+      - name: server_tool_use_web_search_request
+        description: Number of server-side web search tool calls.
+      - name: uncached_input_token
+        description: Number of uncached input tokens.
+      - name: model
+        description: Claude model name.
+      - name: service_tier
+        description: Service tier.
+      - name: context_window
+        description: Context window size tier.
+      - name: cache_read_input_token
+        description: Number of tokens read from cache.
+      - name: _fivetran_synced
+        description: "{{ doc('_fivetran_synced') }}"
+
+  - name: stg_claude__enterprise_user_usage_report
+    description: Staged per-user token usage report for enterprise accounts.
+    columns:
+      - name: enterprise_user_usage_report_id
+        description: Fivetran-generated unique identifier.
+        tests:
+          - not_null
+          - unique
+      - name: actor_user_id
+        description: Identifier of the enterprise actor.
+      - name: request
+        description: Number of API requests.
+      - name: cache_creation_ephemeral_1_h_input_token
+        description: Tokens used to create 1-hour ephemeral cache entries.
+      - name: cache_creation_ephemeral_5_m_input_token
+        description: Tokens used to create 5-minute ephemeral cache entries.
+      - name: product
+        description: Anthropic product.
+      - name: starting_date
+        description: Start of the reporting period (cast to DATE).
+      - name: ending_date
+        description: End of the reporting period (cast to DATE).
+      - name: output_token
+        description: Number of output tokens.
+      - name: data_refreshed_at
+        description: Timestamp when the source data was last refreshed.
+      - name: speed
+        description: Inference speed tier.
+      - name: server_tool_use_web_search_request
+        description: Number of server-side web search tool calls.
+      - name: uncached_input_token
+        description: Number of uncached input tokens.
+      - name: organization_id
+        description: Identifier of the organization.
+      - name: model
+        description: Claude model name.
+      - name: context_window
+        description: Context window size tier.
+      - name: inference_geo
+        description: Geographic region where inference ran.
+      - name: cache_read_input_token
+        description: Number of tokens read from cache.
+      - name: total_token
+        description: Total token count across all token types.
+      - name: _fivetran_synced
+        description: "{{ doc('_fivetran_synced') }}"
+
+  - name: stg_claude__claude_code_usage_report
+    description: Staged Claude Code usage report. Each row represents activity for one actor on one day.
+    columns:
+      - name: claude_code_usage_report_id
+        description: Fivetran-generated unique identifier.
+        tests:
+          - not_null
+          - unique
+      - name: organization_id
+        description: Identifier of the organization.
+      - name: customer_type
+        description: Customer segment type.
+      - name: report_date
+        description: Date of the usage report (cast from TIMESTAMP).
+      - name: terminal_type
+        description: Type of terminal or interface used.
+      - name: actor_type
+        description: Type of actor (e.g., user, api_key).
+      - name: actor_api_key_name
+        description: Name of the API key if actor_type is api_key.
+      - name: actor_email_address
+        description: Email address of the actor if actor_type is user.
+      - name: core_metrics_pull_requests_by_claude_code
+        description: Number of pull requests opened or modified by Claude Code.
+      - name: core_metrics_lines_of_code_removed
+        description: Lines of code removed by Claude Code.
+      - name: core_metrics_lines_of_code_added
+        description: Lines of code added by Claude Code.
+      - name: core_metrics_commits_by_claude_code
+        description: Number of commits made by Claude Code.
+      - name: core_metrics_num_sessions
+        description: Number of Claude Code sessions.
+      - name: _fivetran_synced
+        description: "{{ doc('_fivetran_synced') }}"
+
+  - name: stg_claude__claude_code_usage_report_model_breakdown
+    description: Staged token and cost breakdown by model for each Claude Code usage report row.
+    columns:
+      - name: claude_code_usage_report_fivetran_id
+        description: Foreign key to stg_claude__claude_code_usage_report.claude_code_usage_report_id.
+        tests:
+          - not_null
+      - name: model
+        description: Claude model name.
+        tests:
+          - not_null
+      - name: tokens_output
+        description: Output tokens generated by this model.
+      - name: tokens_input
+        description: Input tokens sent to this model.
+      - name: estimated_cost_currency
+        description: Currency for the estimated cost.
+      - name: tokens_cache_creation
+        description: Tokens used for cache creation.
+      - name: estimated_cost_amount
+        description: Estimated cost in the specified currency.
+      - name: tokens_cache_read
+        description: Tokens read from cache.
+      - name: _fivetran_synced
+        description: "{{ doc('_fivetran_synced') }}"
+
+  - name: stg_claude__users
+    description: Staged workspace users with role and membership metadata.
+    columns:
+      - name: user_id
+        description: Unique identifier for the workspace user.
+        tests:
+          - not_null
+          - unique
+      - name: added_at
+        description: Timestamp when the user was added to the workspace.
+      - name: role
+        description: User role within the workspace (e.g., admin, member).
+      - name: name
+        description: Display name of the user.
+      - name: type
+        description: User type (e.g., user, service_account).
+      - name: email
+        description: Email address of the user.
+      - name: _fivetran_synced
+        description: "{{ doc('_fivetran_synced') }}"
+
+  - name: stg_claude__enterprise_user_actor
+    description: Staged enterprise actors referenced in usage and cost reports.
+    columns:
+      - name: actor_id
+        description: Unique identifier for the enterprise actor.
+        tests:
+          - not_null
+          - unique
+      - name: is_deleted
+        description: Whether the actor has been deleted.
+      - name: name
+        description: Display name of the actor.
+      - name: type
+        description: Actor type (e.g., user, api_key).
+      - name: email
+        description: Email address of the actor.
+      - name: _fivetran_synced
+        description: "{{ doc('_fivetran_synced') }}"

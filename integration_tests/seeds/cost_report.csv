@@ -1,0 +1,4 @@
+_fivetran_id,workspace_id,amount,cost_type,starting_at,ending_at,description,token_type,model,service_tier,currency,context_window,inference_geo,_fivetran_deleted,_fivetran_synced
+fivetran_id_001,ws_abc123,0.0042,usage,2025-01-01 00:00:00 UTC,2025-01-31 23:59:59 UTC,API usage Jan 2025,input,claude-3-5-sonnet-20241022,standard,USD,200k,us-east-1,false,2025-02-01 06:00:00 UTC
+fivetran_id_002,ws_abc123,0.0188,usage,2025-01-01 00:00:00 UTC,2025-01-31 23:59:59 UTC,API usage Jan 2025,output,claude-3-5-sonnet-20241022,standard,USD,200k,us-east-1,false,2025-02-01 06:00:00 UTC
+fivetran_id_003,ws_abc123,0.0010,usage,2025-01-01 00:00:00 UTC,2025-01-31 23:59:59 UTC,API usage Jan 2025,cache_read,claude-opus-4-5,priority,USD,200k,us-west-2,false,2025-02-01 06:00:00 UTC
