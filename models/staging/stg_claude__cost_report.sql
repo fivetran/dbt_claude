@@ -26,10 +26,13 @@ final as (
         source_relation,
         _fivetran_id as cost_report_id,
         workspace_id,
-        amount / 100.0 as amount, -- convert cents to dollars
-        cost_type,
         cast(starting_at as {{ dbt.type_timestamp() }}) as starting_at,
         cast(ending_at as {{ dbt.type_timestamp() }}) as ending_at,
+        cast(starting_at as date) as starting_date,
+        cast(ending_at as date) as ending_date,
+        amount, -- in cents
+        currency, -- always USD
+        cost_type,
         description,
         token_type,
         case lower(token_type)
@@ -42,7 +45,6 @@ final as (
         end as unit_type,
         model,
         service_tier,
-        currency, -- always USD
         context_window,
         inference_geo,
         _fivetran_synced

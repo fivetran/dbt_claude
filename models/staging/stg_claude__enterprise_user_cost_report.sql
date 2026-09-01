@@ -26,13 +26,21 @@ final as (
         source_relation,
         _fivetran_id as enterprise_user_cost_report_id,
         actor_user_id,
-        product,
-        amount,
-        list_amount,
         cast(starting_date as date) as starting_date,
         cast(ending_date as date) as ending_date,
+        product,
+        amount / 100.0 as amount, -- convert cents to dollars
+        list_amount / 100.0 as list_amount, -- convert cents to dollars
         cost_type,
         token_type,
+        case lower(token_type)
+            when 'uncached_input_tokens' then 'input'
+            when 'cache_read_input_tokens' then 'cache_read'
+            when 'cache_creation.ephemeral_5m_input_tokens' then 'cache_creation_5m'
+            when 'cache_creation.ephemeral_1h_input_tokens' then 'cache_creation_1h'
+            when 'output_tokens' then 'output'
+            else nullif(lower(token_type), '')
+        end as unit_type,
         data_refreshed_at,
         speed,
         organization_id,

@@ -27,13 +27,13 @@ final as (
         id as actor_id,
         deleted as is_deleted,
         name,
-        type,
-        email,
+        {# type, -- always user_actor #}
+        lower(email) as email,
         _fivetran_synced
 
     from fields
 
-    where not coalesce(_fivetran_deleted, false)
+    where not coalesce(_fivetran_deleted, deleted, false)
 )
 
 select * from final

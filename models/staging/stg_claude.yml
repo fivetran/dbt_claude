@@ -4,11 +4,12 @@ models:
   - name: stg_claude__cost_report
     description: Staged organization-level cost report. Each row represents one billing line item for a given model, token type, and time period.
     columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
       - name: cost_report_id
         description: Fivetran-generated unique identifier for the row.
         tests:
           - not_null
-          - unique
       - name: workspace_id
         description: ID of the Workspace this cost is associated with.
       - name: amount
@@ -41,19 +42,24 @@ models:
   - name: stg_claude__enterprise_user_cost_report
     description: Staged per-user cost report for enterprise accounts. Each row represents cost for one actor over a time period.
     columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
       - name: enterprise_user_cost_report_id
         description: Fivetran-generated unique identifier for the row.
         tests:
           - not_null
-          - unique
       - name: actor_user_id
         description: Identifier of the `enterprise_user_actor`.
       - name: product
         description: Anthropic product surface that produced the cost ("chat", "claude_code", "cowork", "office_agent", "claude_in_chrome", "claude_design", "claude-tag" aka Claude in Slack, "other").
       - name: amount
-        description: Amount (post-discount, pre-credit) in fractional cents (minor units).
+        description: >
+          Amount (post-discount, pre-credit) in whole currency units. Converted in this model
+          from the source value, which Anthropic reports in fractional cents.
       - name: list_amount
-        description: List-price amount (pre-discount) in fractional cents.
+        description: >
+          List-price amount (pre-discount) in whole currency units. Converted in this model
+          from the source value, which Anthropic reports in fractional cents.
       - name: starting_date
         description: Start of the reporting period (cast to date).
       - name: ending_date
@@ -62,6 +68,10 @@ models:
         description: Category of cost ("code_execution", "tokens", "web_search").
       - name: token_type
         description: Token type contributing to the cost ("cache_creation.ephemeral_1h_input_tokens", "cache_creation.ephemeral_5m_input_tokens", "cache_read_input_tokens", "output_tokens", "uncached_input_tokens").
+      - name: unit_type
+        description: >
+          Simplified grouping of token_type, derived in this model ("input", "cache_read",
+          "cache_creation_5m", "cache_creation_1h", "output"). Null for cost that is not token based.
       - name: data_refreshed_at
         description: Timestamp of the export this response was served from. Data is typically refreshed every 4 hours but not final until about 30 days after the usage date (late-arriving events, reconciliation adjustments).
       - name: speed
@@ -82,82 +92,84 @@ models:
   - name: stg_claude__message_usage_report
     description: Staged API message usage report. Each row represents token usage for one API request bucket.
     columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
       - name: message_usage_report_id
-        description: Fivetran-generated unique identifier.
+        description: Fivetran-generated unique identifier for the row.
         tests:
           - not_null
-          - unique
       - name: api_key_id
-        description: Identifier of the API key used.
+        description: Identifier of the API key used for the requests.
       - name: workspace_id
         description: Identifier of the workspace.
       - name: cache_creation_ephemeral_1_h_input_token
-        description: Tokens used to create 1-hour ephemeral cache entries.
+        description: The number of input tokens used to create the 1 hour cache entry.
       - name: cache_creation_ephemeral_5_m_input_token
-        description: Tokens used to create 5-minute ephemeral cache entries.
+        description: The number of input tokens used to create the 5 minute cache entry.
       - name: starting_at
-        description: Start of the usage period (cast to DATE).
+        description: Start of the usage period (cast to date).
       - name: ending_at
-        description: End of the usage period (cast to DATE).
+        description: End of the usage period (cast to date).
       - name: output_token
-        description: Number of output tokens generated.
+        description: The number of output tokens generated.
       - name: server_tool_use_web_search_request
-        description: Number of server-side web search tool calls.
+        description: The number of server-side web search requests made.
       - name: uncached_input_token
-        description: Number of uncached input tokens.
+        description: The number of uncached input tokens processed.
       - name: model
-        description: Claude model name.
+        description: Claude model that served the requests.
       - name: service_tier
-        description: Service tier.
+        description: Service tier applied to the requests ("batch", "flex", "discount", "flex_discount", "priority", "priority_on_demand", "standard").
       - name: context_window
-        description: Context window size tier.
+        description: Context window used ("0-200k", "200k-1M").
       - name: cache_read_input_token
-        description: Number of tokens read from cache.
+        description: The number of input tokens read from the cache.
       - name: _fivetran_synced
         description: "{{ doc('_fivetran_synced') }}"
 
   - name: stg_claude__enterprise_user_usage_report
     description: Staged per-user token usage report for enterprise accounts.
     columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
       - name: enterprise_user_usage_report_id
-        description: Fivetran-generated unique identifier.
+        description: Fivetran-generated unique identifier for the row.
         tests:
           - not_null
-          - unique
       - name: actor_user_id
-        description: Identifier of the enterprise actor.
-      - name: request
-        description: Number of API requests.
+        description: Identifier of the `enterprise_user_actor`.
+      - name: count_requests
+        description: Number of API requests in this row's scope.
       - name: cache_creation_ephemeral_1_h_input_token
-        description: Tokens used to create 1-hour ephemeral cache entries.
+        description: The number of input tokens used to create the 1 hour cache entry.
       - name: cache_creation_ephemeral_5_m_input_token
-        description: Tokens used to create 5-minute ephemeral cache entries.
+        description: The number of input tokens used to create the 5 minute cache entry.
       - name: product
-        description: Anthropic product.
+        description: Anthropic product surface that produced the usage ("chat", "claude_code", "cowork", "office_agent", "claude_in_chrome", "claude_design", "claude-tag" aka Claude in Slack, "other").
       - name: starting_date
-        description: Start of the reporting period (cast to DATE).
+        description: Start of the reporting period (cast to date).
       - name: ending_date
-        description: End of the reporting period (cast to DATE).
+        description: End of the reporting period (cast to date).
       - name: output_token
-        description: Number of output tokens.
+        description: The number of output tokens generated.
       - name: data_refreshed_at
-        description: Timestamp when the source data was last refreshed.
+        description: Timestamp of the export this response was served from. Data is typically refreshed every 4 hours but not final until about 30 days after the usage date (late-arriving events, reconciliation adjustments).
       - name: speed
-        description: Inference speed tier.
+        description: Inference speed tier ("fast", "standard").
       - name: server_tool_use_web_search_request
-        description: Number of server-side web search tool calls.
+        description: The number of server-side web search requests made.
       - name: uncached_input_token
-        description: Number of uncached input tokens.
+        description: The number of uncached input tokens processed.
       - name: organization_id
         description: Identifier of the organization.
       - name: model
-        description: Claude model name.
+        description: Claude model that served the requests.
       - name: context_window
-        description: Context window size tier.
+        description: Context window size tier ("0-200k", "200k-1M").
       - name: inference_geo
-        description: Geographic region where inference ran.
+        description: Geographic region where inference ran ("global", "not_available", "us").
       - name: cache_read_input_token
-        description: Number of tokens read from cache.
+        description: The number of input tokens read from the cache.
       - name: total_token
         description: Total token count across all token types.
       - name: _fivetran_synced
@@ -166,80 +178,84 @@ models:
   - name: stg_claude__claude_code_usage_report
     description: Staged Claude Code usage report. Each row represents activity for one actor on one day.
     columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
       - name: claude_code_usage_report_id
-        description: Fivetran-generated unique identifier.
+        description: Fivetran-generated unique identifier for the row.
         tests:
           - not_null
-          - unique
       - name: organization_id
         description: Identifier of the organization.
       - name: customer_type
-        description: Customer segment type.
+        description: Type of customer account ("api" for API customers, "subscription" for Pro/Team customers).
       - name: report_date
-        description: Date of the usage report (cast from TIMESTAMP).
+        description: Date the usage occurred.
       - name: terminal_type
-        description: Type of terminal or interface used.
+        description: Type of terminal or environment where Claude Code was used.
       - name: actor_type
-        description: Type of actor (e.g., user, api_key).
+        description: Type of actor ("api_actor", "user_actor").
       - name: actor_api_key_name
-        description: Name of the API key if actor_type is api_key.
+        description: Name of the API key used to perform Claude Code actions when `actor_type` is "api_actor".
       - name: actor_email_address
-        description: Email address of the actor if actor_type is user.
+        description: Email address of the user who performed Claude Code actions when `actor_type` is "user_actor".
       - name: core_metrics_pull_requests_by_claude_code
-        description: Number of pull requests opened or modified by Claude Code.
+        description: Number of pull requests created through Claude Code's PR functionality.
       - name: core_metrics_lines_of_code_removed
-        description: Lines of code removed by Claude Code.
+        description: Total number of lines of code removed across all files by Claude Code.
       - name: core_metrics_lines_of_code_added
-        description: Lines of code added by Claude Code.
+        description: Total number of lines of code added across all files by Claude Code.
       - name: core_metrics_commits_by_claude_code
-        description: Number of commits made by Claude Code.
+        description: Number of git commits created through Claude Code's commit functionality.
       - name: core_metrics_num_sessions
-        description: Number of Claude Code sessions.
+        description: Number of distinct Claude Code sessions initiated by this actor.
       - name: _fivetran_synced
         description: "{{ doc('_fivetran_synced') }}"
 
   - name: stg_claude__claude_code_usage_report_model_breakdown
     description: Staged token and cost breakdown by model for each Claude Code usage report row.
     columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
       - name: claude_code_usage_report_fivetran_id
         description: Foreign key to stg_claude__claude_code_usage_report.claude_code_usage_report_id.
         tests:
           - not_null
       - name: model
-        description: Claude model name.
+        description: Name of the AI model used for Claude Code interactions.
         tests:
           - not_null
       - name: tokens_output
-        description: Output tokens generated by this model.
+        description: Number of output tokens generated by this model.
       - name: tokens_input
-        description: Input tokens sent to this model.
+        description: Number of input tokens consumed by this model.
       - name: estimated_cost_currency
-        description: Currency for the estimated cost.
+        description: Currency code for the estimated cost (e.g., 'USD').
       - name: tokens_cache_creation
-        description: Tokens used for cache creation.
+        description: Number of cache creation tokens consumed by this model.
       - name: estimated_cost_amount
-        description: Estimated cost in the specified currency.
+        description: Estimated cost amount in minor currency units (e.g., cents for USD).
       - name: tokens_cache_read
-        description: Tokens read from cache.
+        description: Number of cache read tokens consumed by this model.
       - name: _fivetran_synced
         description: "{{ doc('_fivetran_synced') }}"
 
   - name: stg_claude__users
     description: Staged workspace users with role and membership metadata.
     columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
       - name: user_id
-        description: Unique identifier for the workspace user.
+        description: Unique identifier for the user.
         tests:
           - not_null
-          - unique
       - name: added_at
-        description: Timestamp when the user was added to the workspace.
+        description: Timestamp when the user joined the organization.
       - name: role
-        description: User role within the workspace (e.g., admin, member).
+        description: Organization role of the user ("admin", "billing", "claude_code_user", "developer", "managed", "membership_admin", "owner", "primary_owner", "user").
       - name: name
         description: Display name of the user.
       - name: type
-        description: User type (e.g., user, service_account).
+        description: Object type ("user").
       - name: email
         description: Email address of the user.
       - name: _fivetran_synced
@@ -248,18 +264,209 @@ models:
   - name: stg_claude__enterprise_user_actor
     description: Staged enterprise actors referenced in usage and cost reports.
     columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
       - name: actor_id
-        description: Unique identifier for the enterprise actor.
+        description: Unique identifier for the actor.
         tests:
           - not_null
-          - unique
       - name: is_deleted
-        description: Whether the actor has been deleted.
+        description: True when the account has been deleted, or when the user is no longer a member of the organization or its associated organizations.
       - name: name
-        description: Display name of the actor.
+        description: Full name of the user actor, if provided. May be "Deleted User" for deleted or deprovisioned accounts.
       - name: type
-        description: Actor type (e.g., user, api_key).
+        description: Always "user_actor".
       - name: email
-        description: Email address of the actor.
+        description: The user's email address, including for users who are no longer members of the organization or its associated organizations. Null when the account has been deleted and for system-minted service accounts.
+      - name: _fivetran_synced
+        description: "{{ doc('_fivetran_synced') }}"
+
+  - name: stg_claude__api_key
+    description: Staged API keys belonging to the organization's workspaces.
+    columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
+      - name: api_key_id
+        description: Unique identifier for the API key.
+        tests:
+          - not_null
+      - name: workspace_id
+        description: ID of the Workspace the API key belongs to. Joins to `stg_claude__workspace.workspace_id`.
+      - name: name
+        description: Name of the API key.
+      - name: partial_key_hint
+        description: Partially redacted hint of the key value, used to identify a key without exposing it.
+      - name: status
+        description: Status of the API key ("active", "archived", "inactive").
+      - name: created_at
+        description: Timestamp when the API key was created.
+      - name: created_by_id
+        description: Identifier of the actor that created the API key.
+      - name: created_by_type
+        description: Type of actor that created the API key.
+      - name: _fivetran_synced
+        description: "{{ doc('_fivetran_synced') }}"
+
+  - name: stg_claude__workspace
+    description: Staged workspaces within the organization. Workspaces group API keys and scope usage and cost reporting.
+    columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
+      - name: workspace_id
+        description: Unique identifier for the workspace.
+        tests:
+          - not_null
+      - name: name
+        description: Name of the workspace.
+      - name: created_at
+        description: Timestamp when the workspace was created.
+      - name: display_color
+        description: Hex color used to display the workspace in the Anthropic Console.
+      - name: type
+        description: Object type ("workspace").
+      - name: data_residency_workspace_geo
+        description: Geographic region where the workspace's data resides.
+      - name: data_residency_default_inference_geo
+        description: Default geographic region used for inference in this workspace.
+      - name: data_residency_allowed_inference_geo
+        description: Geographic regions where inference is permitted for this workspace.
+      - name: _fivetran_synced
+        description: "{{ doc('_fivetran_synced') }}"
+
+  - name: stg_claude__enterprise_user_activity
+    description: Staged daily per-user activity metrics across Anthropic product surfaces. One row per user per day.
+    columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
+      - name: activity_date
+        description: Date the activity occurred.
+        tests:
+          - not_null
+      - name: user_id
+        description: Identifier of the user the activity belongs to. Joins to `stg_claude__enterprise_user_actor.actor_id`.
+        tests:
+          - not_null
+      - name: chat_metrics_connectors_used_count
+        description: Number of connector invocations in Claude chat.
+      - name: chat_metrics_distinct_artifacts_created_count
+        description: Number of distinct artifacts created in Claude chat.
+      - name: chat_metrics_distinct_conversation_count
+        description: Number of distinct conversations in Claude chat.
+      - name: chat_metrics_distinct_files_uploaded_count
+        description: Number of distinct files uploaded in Claude chat.
+      - name: chat_metrics_distinct_projects_created_count
+        description: Number of distinct projects created in Claude chat.
+      - name: chat_metrics_distinct_projects_used_count
+        description: Number of distinct projects used in Claude chat.
+      - name: chat_metrics_distinct_shared_artifacts_viewed_count
+        description: Number of distinct shared artifacts viewed in Claude chat.
+      - name: chat_metrics_distinct_skills_used_count
+        description: Number of distinct skills used in Claude chat.
+      - name: chat_metrics_message_count
+        description: Number of messages sent in Claude chat.
+      - name: chat_metrics_shared_conversations_viewed_count
+        description: Number of shared conversations viewed in Claude chat.
+      - name: chat_metrics_thinking_message_count
+        description: Number of messages that used extended thinking in Claude chat.
+      - name: claude_code_metrics_core_metrics_commit_count
+        description: Number of git commits created in Claude Code.
+      - name: claude_code_metrics_core_metrics_distinct_session_count
+        description: Number of distinct sessions in Claude Code.
+      - name: claude_code_metrics_core_metrics_lines_of_code_added_count
+        description: Lines of code added in Claude Code.
+      - name: claude_code_metrics_core_metrics_lines_of_code_removed_count
+        description: Lines of code removed in Claude Code.
+      - name: claude_code_metrics_core_metrics_pull_request_count
+        description: Number of pull requests created in Claude Code.
+      - name: claude_code_metrics_tool_actions_edit_tool_accepted_count
+        description: Number of accepted Edit tool actions in Claude Code.
+      - name: claude_code_metrics_tool_actions_edit_tool_rejected_count
+        description: Number of rejected Edit tool actions in Claude Code.
+      - name: claude_code_metrics_tool_actions_multi_edit_tool_accepted_count
+        description: Number of accepted MultiEdit tool actions in Claude Code.
+      - name: claude_code_metrics_tool_actions_multi_edit_tool_rejected_count
+        description: Number of rejected MultiEdit tool actions in Claude Code.
+      - name: claude_code_metrics_tool_actions_notebook_edit_tool_accepted_count
+        description: Number of accepted NotebookEdit tool actions in Claude Code.
+      - name: claude_code_metrics_tool_actions_notebook_edit_tool_rejected_count
+        description: Number of rejected NotebookEdit tool actions in Claude Code.
+      - name: claude_code_metrics_tool_actions_write_tool_accepted_count
+        description: Number of accepted Write tool actions in Claude Code.
+      - name: claude_code_metrics_tool_actions_write_tool_rejected_count
+        description: Number of rejected Write tool actions in Claude Code.
+      - name: cowork_metrics_action_count
+        description: Number of actions taken in Claude Cowork.
+      - name: cowork_metrics_connectors_used_count
+        description: Number of connector invocations in Claude Cowork.
+      - name: cowork_metrics_dispatch_turn_count
+        description: Number of dispatch turns in Claude Cowork.
+      - name: cowork_metrics_distinct_connectors_used_count
+        description: Number of distinct connectors used in Claude Cowork.
+      - name: cowork_metrics_distinct_session_count
+        description: Number of distinct sessions in Claude Cowork.
+      - name: cowork_metrics_distinct_skills_used_count
+        description: Number of distinct skills used in Claude Cowork.
+      - name: cowork_metrics_message_count
+        description: Number of messages sent in Claude Cowork.
+      - name: cowork_metrics_skills_used_count
+        description: Number of skill invocations in Claude Cowork.
+      - name: design_metrics_distinct_projects_created_count
+        description: Number of distinct projects created in Claude Design.
+      - name: design_metrics_distinct_projects_used_count
+        description: Number of distinct projects used in Claude Design.
+      - name: design_metrics_distinct_session_count
+        description: Number of distinct sessions in Claude Design.
+      - name: design_metrics_message_count
+        description: Number of messages sent in Claude Design.
+      - name: office_metrics_excel_connectors_used_count
+        description: Number of connector invocations in Claude for Excel.
+      - name: office_metrics_excel_distinct_connectors_used_count
+        description: Number of distinct connectors used in Claude for Excel.
+      - name: office_metrics_excel_distinct_session_count
+        description: Number of distinct sessions in Claude for Excel.
+      - name: office_metrics_excel_distinct_skills_used_count
+        description: Number of distinct skills used in Claude for Excel.
+      - name: office_metrics_excel_message_count
+        description: Number of messages sent in Claude for Excel.
+      - name: office_metrics_excel_skills_used_count
+        description: Number of skill invocations in Claude for Excel.
+      - name: office_metrics_outlook_connectors_used_count
+        description: Number of connector invocations in Claude for Outlook.
+      - name: office_metrics_outlook_distinct_connectors_used_count
+        description: Number of distinct connectors used in Claude for Outlook.
+      - name: office_metrics_outlook_distinct_session_count
+        description: Number of distinct sessions in Claude for Outlook.
+      - name: office_metrics_outlook_distinct_skills_used_count
+        description: Number of distinct skills used in Claude for Outlook.
+      - name: office_metrics_outlook_message_count
+        description: Number of messages sent in Claude for Outlook.
+      - name: office_metrics_outlook_skills_used_count
+        description: Number of skill invocations in Claude for Outlook.
+      - name: office_metrics_powerpoint_connectors_used_count
+        description: Number of connector invocations in Claude for PowerPoint.
+      - name: office_metrics_powerpoint_distinct_connectors_used_count
+        description: Number of distinct connectors used in Claude for PowerPoint.
+      - name: office_metrics_powerpoint_distinct_session_count
+        description: Number of distinct sessions in Claude for PowerPoint.
+      - name: office_metrics_powerpoint_distinct_skills_used_count
+        description: Number of distinct skills used in Claude for PowerPoint.
+      - name: office_metrics_powerpoint_message_count
+        description: Number of messages sent in Claude for PowerPoint.
+      - name: office_metrics_powerpoint_skills_used_count
+        description: Number of skill invocations in Claude for PowerPoint.
+      - name: office_metrics_word_connectors_used_count
+        description: Number of connector invocations in Claude for Word.
+      - name: office_metrics_word_distinct_connectors_used_count
+        description: Number of distinct connectors used in Claude for Word.
+      - name: office_metrics_word_distinct_session_count
+        description: Number of distinct sessions in Claude for Word.
+      - name: office_metrics_word_distinct_skills_used_count
+        description: Number of distinct skills used in Claude for Word.
+      - name: office_metrics_word_message_count
+        description: Number of messages sent in Claude for Word.
+      - name: office_metrics_word_skills_used_count
+        description: Number of skill invocations in Claude for Word.
+      - name: web_search_count
+        description: Number of web searches performed across all surfaces.
       - name: _fivetran_synced
         description: "{{ doc('_fivetran_synced') }}"

@@ -1,4 +1,5 @@
 {% macro get_enterprise_user_usage_report_columns() %}
+
 {% set columns = [
     {"name": "_fivetran_id",                                "datatype": dbt.type_string()},
     {"name": "actor_user_id",                               "datatype": dbt.type_string()},
@@ -22,5 +23,7 @@
     {"name": "_fivetran_deleted",                           "datatype": "boolean"},
     {"name": "_fivetran_synced",                            "datatype": dbt.type_timestamp()}
 ] %}
+
 {{ return(columns) }}
+
 {% endmacro %}

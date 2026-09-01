@@ -23,3 +23,6 @@ vars:
     claude_code_usage_report_model_breakdown: "{{ source('claude', 'claude_code_usage_report_model_breakdown') }}"
     users: "{{ source('claude', 'users') }}"
     enterprise_user_actor: "{{ source('claude', 'enterprise_user_actor') }}"
+    api_key: "{{ source('claude', 'api_key') }}"
+    workspace: "{{ source('claude', 'workspace') }}"
+    enterprise_user_activity: "{{ source('claude', 'enterprise_user_activity') }}"
