@@ -32,11 +32,11 @@ final as (
         actor_type,
         actor_api_key_name,
         actor_email_address,
-        core_metrics_pull_requests_by_claude_code,
-        core_metrics_lines_of_code_removed,
-        core_metrics_lines_of_code_added,
-        core_metrics_commits_by_claude_code,
-        core_metrics_num_sessions,
+        coalesce(core_metrics_pull_requests_by_claude_code, 0) as pull_requests_by_claude_code,
+        coalesce(core_metrics_lines_of_code_removed, 0) as lines_of_code_removed,
+        coalesce(core_metrics_lines_of_code_added, 0) as lines_of_code_added,
+        coalesce(core_metrics_commits_by_claude_code, 0) as commits_by_claude_code,
+        coalesce(core_metrics_num_sessions, 0) as sessions,
         _fivetran_synced
 
     from fields

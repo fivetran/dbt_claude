@@ -36,7 +36,7 @@ users as (
 enterprise_report as (
 
     select *
-    from {{ ref('claude__enterprise_report') }}
+    from {{ ref('claude__enterprise_user_report') }}
 ),
 
 enterprise_user_activity as (
@@ -54,12 +54,12 @@ cost_rollup as (
         actor_user_id,
         {% for alias, column_name in cost_metrics -%}
         sum({{ column_name }}) as lifetime_{{ alias }},
-        sum(case when day >= {{ month_start }} then {{ column_name }} end) as month_to_date_{{ alias }},
+        sum(case when date_day >= {{ month_start }} then {{ column_name }} end) as month_to_date_{{ alias }},
         {% endfor -%}
-        count(distinct day) as lifetime_billed_days,
-        count(distinct case when day >= {{ month_start }} then day end) as month_to_date_billed_days,
-        min(day) as first_billed_date,
-        max(day) as last_billed_date
+        count(distinct date_day) as lifetime_billed_days,
+        count(distinct case when date_day >= {{ month_start }} then date_day end) as month_to_date_billed_days,
+        min(date_day) as first_billed_date,
+        max(date_day) as last_billed_date
 
     from enterprise_report
     {{ dbt_utils.group_by(n=2) }}

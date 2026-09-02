@@ -29,10 +29,11 @@ final as (
         cast(starting_date as date) as starting_date,
         cast(ending_date as date) as ending_date,
         product,
-        amount / 100.0 as amount, -- convert cents to dollars
-        list_amount / 100.0 as list_amount, -- convert cents to dollars
-        cost_type,
-        token_type,
+        amount, -- cents
+        list_amount, -- cents
+        currency,
+        lower(cost_type) as cost_type,
+        lower(token_type) as token_type,
         case lower(token_type)
             when 'uncached_input_tokens' then 'input'
             when 'cache_read_input_tokens' then 'cache_read'
@@ -44,8 +45,7 @@ final as (
         data_refreshed_at,
         speed,
         organization_id,
-        model,
-        currency,
+        lower(model) as model,
         context_window,
         inference_geo,
         _fivetran_synced

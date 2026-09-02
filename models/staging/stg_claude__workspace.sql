@@ -28,7 +28,7 @@ final as (
         name,
         created_at,
         display_color,
-        type,
+        {# type, -- always workspace #}
         data_residency_workspace_geo,
         data_residency_default_inference_geo,
         data_residency_allowed_inference_geo,

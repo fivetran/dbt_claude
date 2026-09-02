@@ -24,14 +24,14 @@ enterprise_user_actor as (
     from {{ ref('stg_claude__enterprise_user_actor') }}
 ),
 
--- One row per actor, day, product, model and token type. Speed, context window and inference
+-- One row per actor, date_day, product, model and token type. Speed, context window and inference
 -- geo are summed away so both sides share a grain.
 usage_long as (
 
     {% for column_name, unit_type in token_columns %}
     select
         source_relation,
-        starting_date as day,
+        starting_date as date_day,
         actor_user_id,
         product,
         model,
@@ -39,7 +39,7 @@ usage_long as (
         {{ column_name }} as unit_quantity
 
     from enterprise_user_usage_report
-    where coalesce({{ column_name }}, 0) > 0
+    where {{ column_name }} > 0
     {{ 'union all' if not loop.last }}
     {% endfor %}
 ),
@@ -48,7 +48,7 @@ usage as (
 
     select
         source_relation,
-        day,
+        date_day,
         actor_user_id,
         product,
         model,
@@ -65,7 +65,7 @@ cost as (
 
     select
         source_relation,
-        starting_date as day,
+        starting_date as date_day,
         actor_user_id,
         product,
         model,
@@ -84,7 +84,7 @@ cost_with_usage as (
 
     select
         cost.source_relation,
-        cost.day,
+        cost.date_day,
         cost.actor_user_id,
         cost.product,
         cost.model,
@@ -99,7 +99,7 @@ cost_with_usage as (
     from cost
     left join usage
         on cost.source_relation = usage.source_relation
-        and cost.day = usage.day
+        and cost.date_day = usage.date_day
         and cost.actor_user_id = usage.actor_user_id
         and cost.product = usage.product
         and cost.model = usage.model
@@ -111,7 +111,7 @@ usage_without_cost as (
 
     select
         usage.source_relation,
-        usage.day,
+        usage.date_day,
         usage.actor_user_id,
         usage.product,
         usage.model,
@@ -126,7 +126,7 @@ usage_without_cost as (
     from usage
     left join cost
         on usage.source_relation = cost.source_relation
-        and usage.day = cost.day
+        and usage.date_day = cost.date_day
         and usage.actor_user_id = cost.actor_user_id
         and usage.product = cost.product
         and usage.model = cost.model
@@ -146,7 +146,7 @@ final as (
 
     select
         combined.source_relation,
-        combined.day,
+        combined.date_day,
         combined.actor_user_id,
         enterprise_user_actor.email as actor_email,
         enterprise_user_actor.name as actor_name,
@@ -170,5 +170,5 @@ final as (
 
 select *
 from final
-where coalesce(claude_cost, 0) != 0
-   or coalesce(unit_quantity, 0) != 0
+{# where coalesce(claude_cost, 0) != 0
+   or coalesce(unit_quantity, 0) != 0 #}

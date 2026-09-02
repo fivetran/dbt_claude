@@ -6,8 +6,6 @@
     ('output_token', 'output')
 ] %}
 
-{% set cost_grain = ['source_relation', 'date_day', 'workspace_key', 'model', 'cost_type', 'unit_type'] %}
-
 with cost_report as (
 
     select *
@@ -42,7 +40,7 @@ usage_unpivoted as (
     from message_usage_report
     -- a zero-token row takes no cost allocation, and every message usage row would
     -- otherwise produce one row here per token type regardless of what it used
-    where coalesce({{ column_name }}, 0) > 0
+    where {{ column_name }} > 0
     {{ 'union all' if not loop.last }}
     {% endfor %}
 ),
@@ -76,7 +74,7 @@ share_by_unit_type as (
 
     select
         usage.*,
-        unit_quantity / nullif(sum(coalesce(unit_quantity, 0)) over (
+        unit_quantity / nullif(sum(unit_quantity) over (
             partition by source_relation, date_day, workspace_key, model, unit_type
         ), 0) as token_share
 
@@ -102,7 +100,7 @@ web_search_usage as (
         on message_usage_report.api_key_id = api_key.api_key_id
         and message_usage_report.source_relation = api_key.source_relation
 
-    where coalesce(message_usage_report.server_tool_use_web_search_request, 0) > 0
+    where message_usage_report.server_tool_use_web_search_request > 0
     {{ dbt_utils.group_by(n=7) }}
 ),
 
@@ -118,7 +116,9 @@ share_web_search as (
     from web_search_usage
 ),
 
-cost_agg as (
+-- One row per workspace cost slice: source_relation, date_day, workspace, model, cost_type
+-- and unit_type. This is the grain every allocation branch below joins back to.
+cost as (
 
     select
         source_relation,
@@ -129,26 +129,16 @@ cost_agg as (
         cost_type,
         unit_type,
         max(currency) as currency, -- currently always USD
-        sum(coalesce(amount, 0)) as amount
+        sum(amount) as amount
 
     from cost_report
     {{ dbt_utils.group_by(n=7) }}
-),
-
-cost as (
-
-    select
-        {{ dbt_utils.generate_surrogate_key(cost_grain) }} as cost_key,
-        *
-
-    from cost_agg
 ),
 
 -- cost that names a token type is allocated on that token type's share
 allocated_by_unit_type as (
 
     select
-        cost.cost_key,
         cost.source_relation,
         cost.date_day,
         coalesce(cost.workspace_id, share_by_unit_type.workspace_id) as workspace_id,
@@ -179,7 +169,6 @@ allocated_by_unit_type as (
 allocated_web_search as (
 
     select
-        cost.cost_key,
         cost.source_relation,
         cost.date_day,
         coalesce(cost.workspace_id, share_web_search.workspace_id) as workspace_id,
@@ -213,20 +202,24 @@ allocated as (
 
 -- Cost no api key could be attributed to, because the workspace reported no matching tokens
 -- that date_day. Kept so claude_cost still ties out to the source cost report.
-allocated_by_cost_key as (
+allocated_by_slice as (
 
     select
-        cost_key,
+        source_relation,
+        date_day,
+        coalesce(workspace_id, '__org__') as workspace_key,
+        model,
+        cost_type,
+        unit_type,
         sum(claude_cost) as allocated_cost
 
     from allocated
-    group by 1
+    group by 1, 2, 3, 4, 5, 6
 ),
 
 unallocated as (
 
     select
-        cost.cost_key,
         cost.source_relation,
         cost.date_day,
         cost.workspace_id,
@@ -238,25 +231,61 @@ unallocated as (
         cost.unit_type,
         cast(null as {{ dbt.type_int() }}) as unit_quantity,
         cast(null as {{ dbt.type_float() }}) as token_share,
-        cost.amount - coalesce(allocated_by_cost_key.allocated_cost, 0) as claude_cost,
+        cost.amount - coalesce(allocated_by_slice.allocated_cost, 0) as claude_cost,
         cost.currency,
         'unallocated' as allocation_method
 
+    -- model and unit_type are null on non-token cost (web search, session usage), and
+    -- null = null is never true, so those two columns need a null-safe comparison or every
+    -- such slice would join to nothing and get double-counted as unallocated
     from cost
-    left join allocated_by_cost_key
-        on cost.cost_key = allocated_by_cost_key.cost_key
+    left join allocated_by_slice
+        on cost.source_relation = allocated_by_slice.source_relation
+        and cost.date_day = allocated_by_slice.date_day
+        and cost.workspace_key = allocated_by_slice.workspace_key
+        and cost.model is not distinct from allocated_by_slice.model
+        and cost.cost_type = allocated_by_slice.cost_type
+        and cost.unit_type is not distinct from allocated_by_slice.unit_type
 
-    where abs(cost.amount - coalesce(allocated_by_cost_key.allocated_cost, 0)) > 0.000001
+    where abs(cost.amount - coalesce(allocated_by_slice.allocated_cost, 0)) > 0.000001
 ),
 
-final as (
+union_allocations as (
 
     select * from allocated
     union all
     select * from unallocated
+),
+
+final as (
+
+    select
+        source_relation,
+        date_day,
+        workspace_id,
+        workspace_name,
+        api_key_id,
+        api_key_name,
+        model,
+        case
+            when model like '%opus%' then 'opus'
+            when model like '%sonnet%' then 'sonnet'
+            when model like '%fable%' then 'fable'
+            when model like '%haiku%' then 'haiku'
+            else model
+        end as model_family,
+        cost_type,
+        unit_type,
+        unit_quantity,
+        token_share,
+        claude_cost,
+        currency,
+        allocation_method
+
+    from union_allocations
 )
 
 select *
 from final
-where coalesce(claude_cost, 0) != 0
-   or coalesce(unit_quantity, 0) != 0
+{# where coalesce(claude_cost, 0) != 0
+   or coalesce(unit_quantity, 0) != 0 #}

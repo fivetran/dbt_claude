@@ -13,15 +13,18 @@ models:
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
-            - cost_key
+            - source_relation
+            - date_day
+            - workspace_id
+            - model
+            - cost_type
+            - unit_type
             - api_key_id
             - allocation_method
     columns:
-      - name: cost_key
-        description: Surrogate key of the workspace cost slice this row draws from.
       - name: source_relation
         description: "{{ doc('source_relation') }}"
-      - name: day
+      - name: date_day
         description: Day the cost and usage apply to.
       - name: workspace_id
         description: >
@@ -38,6 +41,10 @@ models:
         description: Name of the API key. Null on rows not attributed to an API key.
       - name: model
         description: Claude model the cost and usage apply to.
+      - name: model_family
+        description: >
+          The model's family, parsed from `model` ("opus", "sonnet", "fable", "haiku"). Falls
+          back to the raw `model` value when none of those match.
       - name: cost_type
         description: Category of cost ("code_execution", "session_usage", "tokens", "web_search").
       - name: unit_type
@@ -55,8 +62,9 @@ models:
           share of every token the workspace used that day. Sums to 1 within each group.
       - name: claude_cost
         description: >
-          Cost attributed to this row, in whole currency units. Equals the workspace cost for
-          the slice multiplied by `token_share`, except on unallocated rows where it is the
+          Cost attributed to this row, in fractional cents (minor units), matching the unit
+          `stg_claude__cost_report.amount` is reported in. Equals the workspace cost for the
+          slice multiplied by `token_share`, except on unallocated rows where it is the
           remainder that no API key could be attributed.
       - name: currency
         description: Currency code for the cost amount. Currently always "USD".
@@ -237,3 +245,71 @@ models:
         description: Earliest day the actor recorded product activity.
       - name: last_active_date
         description: Most recent day the actor recorded product activity.
+
+  - name: claude__claude_code_report
+    description: >
+      Claude Code activity, one row per actor, day, terminal type and customer type. An actor
+      is either a person, identified by email, or an API key, identified by name. Per-model
+      token and cost detail is reported for only about 1% of rows, so it is rolled up onto the
+      parent instead of fanned out into per-model rows.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - source_relation
+            - claude_code_usage_report_id
+    columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
+      - name: claude_code_usage_report_id
+        description: Fivetran-generated unique identifier for the usage report row.
+      - name: report_date
+        description: Date the Claude Code activity occurred.
+      - name: organization_id
+        description: Identifier of the organization.
+      - name: customer_type
+        description: Type of customer account ("api" for API customers, "subscription" for Pro/Team customers).
+      - name: actor_type
+        description: Type of actor ("api_actor", "user_actor").
+      - name: actor_email_address
+        description: Email address of the actor. Populated only when `actor_type` is "user_actor".
+      - name: actor_api_key_name
+        description: Name of the API key. Populated only when `actor_type` is "api_actor".
+      - name: actor_user_id
+        description: >
+          Identifier of the matching enterprise actor, resolved by email. Null for API key
+          actors and for people with no enterprise actor record.
+      - name: actor_name
+        description: Full name of the matching enterprise actor, if one was found.
+      - name: is_actor_deleted
+        description: Whether the matching enterprise actor is deleted or no longer a member.
+      - name: terminal_type
+        description: Terminal or environment Claude Code ran in.
+      - name: count_sessions
+        description: Distinct Claude Code sessions initiated by this actor.
+      - name: count_commits
+        description: Git commits created through Claude Code.
+      - name: count_pull_requests
+        description: Pull requests created through Claude Code.
+      - name: count_lines_of_code_added
+        description: Lines of code added across all files by Claude Code.
+      - name: count_lines_of_code_removed
+        description: Lines of code removed across all files by Claude Code.
+      - name: count_models_used
+        description: Distinct Claude models named in the per-model breakdown. Null when no breakdown is reported.
+      - name: tokens_input
+        description: Input tokens consumed, summed across models. Null when no breakdown is reported.
+      - name: tokens_output
+        description: Output tokens generated, summed across models. Null when no breakdown is reported.
+      - name: tokens_cache_creation
+        description: Cache creation tokens consumed, summed across models. Null when no breakdown is reported.
+      - name: tokens_cache_read
+        description: Cache read tokens consumed, summed across models. Null when no breakdown is reported.
+      - name: total_tokens
+        description: Sum of all four token types. Zero rather than null when no breakdown is reported.
+      - name: estimated_cost
+        description: >
+          Estimated Claude Code cost in whole currency units, summed across models. Converted
+          in this model from the source value, which Anthropic reports in fractional cents.
+          Null when no breakdown is reported.
+      - name: estimated_cost_currency
+        description: Currency code for the estimated cost.
