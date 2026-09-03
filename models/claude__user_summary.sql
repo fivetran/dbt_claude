@@ -45,6 +45,18 @@ enterprise_user_activity as (
     from {{ ref('stg_claude__enterprise_user_activity') }}
 ),
 
+workspace_member as (
+
+    select *
+    from {{ ref('stg_claude__workspace_member') }}
+),
+
+workspace as (
+
+    select *
+    from {{ ref('stg_claude__workspace') }}
+),
+
 -- Cost and tokens per actor, all time and for the current calendar month. Both windows are
 -- rolled up in one pass with conditional aggregation rather than joining two summaries.
 cost_rollup as (
@@ -84,6 +96,28 @@ activity_rollup as (
     {{ dbt_utils.group_by(n=2) }}
 ),
 
+-- Workspace membership for the workspace user matched above. A user can belong to more
+-- than one workspace, so this is rolled up to one row per user before it is joined onto the
+-- actor grain below, and never joins workspace_member directly to enterprise_user_actor.
+workspace_rollup as (
+
+    select
+        workspace_member.source_relation,
+        workspace_member.user_id,
+        count(distinct workspace_member.workspace_id) as count_workspaces,
+        {{ fivetran_utils.string_agg('distinct workspace.name', "', '") }} as workspace_names,
+        max(case when workspace_member.workspace_role = 'workspace_admin' then 1 else 0 end) = 1
+            as is_workspace_admin,
+        max(case when workspace_member.workspace_role in ('workspace_developer', 'workspace_restricted_developer') then 1 else 0 end) = 1
+            as is_workspace_developer
+    from workspace_member
+    left join workspace
+        on workspace_member.workspace_id = workspace.workspace_id
+        and workspace_member.source_relation = workspace.source_relation
+
+    {{ dbt_utils.group_by(n=2) }}
+),
+
 final as (
 
     select
@@ -98,6 +132,12 @@ final as (
         users.role,
         users.added_at as joined_organization_at,
         users.user_id is not null as is_workspace_user,
+
+        -- workspace membership, present only for actors with a matching workspace user
+        workspace_rollup.count_workspaces,
+        workspace_rollup.workspace_names,
+        workspace_rollup.is_workspace_admin,
+        workspace_rollup.is_workspace_developer,
 
         -- cost and usage
         {% for alias, column_name in cost_metrics -%}
@@ -135,6 +175,10 @@ final as (
     left join activity_rollup
         on enterprise_user_actor.actor_id = activity_rollup.actor_user_id
         and enterprise_user_actor.source_relation = activity_rollup.source_relation
+
+    left join workspace_rollup
+        on users.user_id = workspace_rollup.user_id
+        and enterprise_user_actor.source_relation = workspace_rollup.source_relation
 )
 
 select *

@@ -28,7 +28,7 @@ final as (
         actor_user_id,
         cast(starting_date as date) as starting_date,
         cast(ending_date as date) as ending_date,
-        product,
+        lower(product) as product,
         speed,
         organization_id,
         lower(model) as model,

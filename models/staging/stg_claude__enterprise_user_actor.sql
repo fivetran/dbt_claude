@@ -25,15 +25,14 @@ final as (
     select
         source_relation,
         id as actor_id,
-        deleted as is_deleted,
+        coalesce(deleted, _fivetran_deleted) as is_deleted,
         name,
-        {# type, -- always user_actor #}
         lower(email) as email,
         _fivetran_synced
 
     from fields
 
-    where not coalesce(_fivetran_deleted, deleted, false)
+    {# where not coalesce(_fivetran_deleted, deleted, false) #}
 )
 
 select * from final

@@ -25,13 +25,13 @@ final as (
     select
         source_relation,
         claude_code_usage_report_fivetran_id,
-        model,
-        tokens_output,
-        tokens_input,
+        lower(model) as model,
+        coalesce(tokens_output, 0) as tokens_output,
+        coalesce(tokens_input, 0) as tokens_input,
+        coalesce(tokens_cache_creation, 0) as tokens_cache_creation,
+        coalesce(tokens_cache_read, 0) as tokens_cache_read,
         estimated_cost_currency,
-        tokens_cache_creation,
-        estimated_cost_amount,
-        tokens_cache_read,
+        coalesce(estimated_cost_amount, 0) as estimated_cost_amount,
         _fivetran_synced
 
     from fields

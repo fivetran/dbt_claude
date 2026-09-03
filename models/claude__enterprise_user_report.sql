@@ -24,6 +24,12 @@ enterprise_user_actor as (
     from {{ ref('stg_claude__enterprise_user_actor') }}
 ),
 
+organization as (
+
+    select *
+    from {{ ref('stg_claude__organization') }}
+),
+
 -- One row per actor, date_day, product, model and token type. Speed, context window and inference
 -- geo are summed away so both sides share a grain.
 usage_long as (
@@ -33,6 +39,7 @@ usage_long as (
         source_relation,
         starting_date as date_day,
         actor_user_id,
+        organization_id,
         product,
         model,
         '{{ unit_type }}' as unit_type,
@@ -53,6 +60,7 @@ usage as (
         product,
         model,
         unit_type,
+        max(organization_id) as organization_id,
         sum(unit_quantity) as unit_quantity
 
     from usage_long
@@ -71,6 +79,7 @@ cost as (
         model,
         cost_type,
         unit_type,
+        max(organization_id) as organization_id,
         max(currency) as currency,
         max(data_refreshed_at) as data_refreshed_at,
         sum(amount) as claude_cost,
@@ -85,6 +94,7 @@ cost_with_usage as (
     select
         cost.source_relation,
         cost.date_day,
+        cost.organization_id,
         cost.actor_user_id,
         cost.product,
         cost.model,
@@ -112,6 +122,7 @@ usage_without_cost as (
     select
         usage.source_relation,
         usage.date_day,
+        usage.organization_id,
         usage.actor_user_id,
         usage.product,
         usage.model,
@@ -147,12 +158,21 @@ final as (
     select
         combined.source_relation,
         combined.date_day,
+        combined.organization_id,
+        organization.name as organization_name,
         combined.actor_user_id,
         enterprise_user_actor.email as actor_email,
         enterprise_user_actor.name as actor_name,
         enterprise_user_actor.is_deleted as is_actor_deleted,
         combined.product,
         combined.model,
+        case
+            when combined.model like '%opus%' then 'opus'
+            when combined.model like '%sonnet%' then 'sonnet'
+            when combined.model like '%fable%' then 'fable'
+            when combined.model like '%haiku%' then 'haiku'
+            else combined.model
+        end as model_family,
         combined.cost_type,
         combined.unit_type,
         combined.unit_quantity,
@@ -166,9 +186,13 @@ final as (
     left join enterprise_user_actor
         on combined.actor_user_id = enterprise_user_actor.actor_id
         and combined.source_relation = enterprise_user_actor.source_relation
+
+    left join organization
+        on combined.organization_id = organization.organization_id
+        and combined.source_relation = organization.source_relation
 )
 
 select *
 from final
-{# where coalesce(claude_cost, 0) != 0
-   or coalesce(unit_quantity, 0) != 0 #}
+where coalesce(claude_cost, 0) != 0
+   or coalesce(unit_quantity, 0) != 0

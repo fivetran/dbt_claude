@@ -77,7 +77,7 @@ models:
           matched, so the cost is carried at workspace grain -- this covers session usage and
           code execution cost, which names no model or token type to allocate on.
 
-  - name: claude__enterprise_report
+  - name: claude__enterprise_user_report
     description: >
       Enterprise per-user cost joined to per-user token usage. One row per actor, day, product,
       model, cost type and token type. Speed, context window and inference geo are summed away
@@ -89,7 +89,7 @@ models:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
             - source_relation
-            - day
+            - date_day
             - actor_user_id
             - product
             - model
@@ -98,8 +98,12 @@ models:
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
-      - name: day
+      - name: date_day
         description: Day the cost and usage apply to.
+      - name: organization_id
+        description: Identifier of the organization. Joins to `stg_claude__organization.organization_id`.
+      - name: organization_name
+        description: Name of the organization.
       - name: actor_user_id
         description: >
           Identifier of the enterprise actor. Joins to
@@ -116,6 +120,10 @@ models:
           "cowork", "office_agent", "claude_in_chrome", "claude_design", "claude-tag", "other").
       - name: model
         description: Claude model the cost and usage apply to.
+      - name: model_family
+        description: >
+          The model's family, parsed from `model` ("opus", "sonnet", "fable", "haiku"). Falls
+          back to the raw `model` value when none of those match.
       - name: cost_type
         description: >
           Category of cost ("code_execution", "tokens", "web_search"). Null on rows carrying
@@ -131,10 +139,11 @@ models:
           per usage row rather than per token type.
       - name: claude_cost
         description: >
-          Cost after discounts and before credits, in whole currency units. Null on rows
-          carrying usage that has no matching cost.
+          Cost after discounts and before credits, in fractional cents (minor units),
+          matching the unit `stg_claude__enterprise_user_cost_report.amount` is reported in.
+          Null on rows carrying usage that has no matching cost.
       - name: claude_list_cost
-        description: List-price cost before discounts, in whole currency units.
+        description: List-price cost before discounts, in fractional cents (minor units).
       - name: claude_discount
         description: Difference between list cost and actual cost.
       - name: currency
@@ -179,14 +188,26 @@ models:
         description: Timestamp when the user joined the organization.
       - name: is_workspace_user
         description: Whether the actor also appears in the workspace users table.
+      - name: count_workspaces
+        description: >
+          Number of distinct workspaces the user belongs to. Null for actors with no matching
+          workspace user.
+      - name: workspace_names
+        description: >
+          Names of every workspace the user belongs to, comma-separated. Null for actors with
+          no matching workspace user.
+      - name: is_workspace_admin
+        description: >
+          Whether the user holds the workspace_admin role in at least one workspace. Null for
+          actors with no matching workspace user.
       - name: lifetime_claude_cost
-        description: Cost after discounts and before credits, in whole currency units. All time.
+        description: Cost after discounts and before credits, in fractional cents (minor units). All time.
       - name: month_to_date_claude_cost
-        description: Cost after discounts and before credits, in whole currency units. Current calendar month only.
+        description: Cost after discounts and before credits, in fractional cents (minor units). Current calendar month only.
       - name: lifetime_claude_list_cost
-        description: List-price cost before discounts, in whole currency units. All time.
+        description: List-price cost before discounts, in fractional cents (minor units). All time.
       - name: month_to_date_claude_list_cost
-        description: List-price cost before discounts, in whole currency units. Current calendar month only.
+        description: List-price cost before discounts, in fractional cents (minor units). Current calendar month only.
       - name: lifetime_tokens
         description: Tokens consumed across all token types. All time.
       - name: month_to_date_tokens
@@ -246,7 +267,7 @@ models:
       - name: last_active_date
         description: Most recent day the actor recorded product activity.
 
-  - name: claude__claude_code_report
+  - name: claude__code_report
     description: >
       Claude Code activity, one row per actor, day, terminal type and customer type. An actor
       is either a person, identified by email, or an API key, identified by name. Per-model
@@ -265,7 +286,9 @@ models:
       - name: report_date
         description: Date the Claude Code activity occurred.
       - name: organization_id
-        description: Identifier of the organization.
+        description: Identifier of the organization. Joins to `stg_claude__organization.organization_id`.
+      - name: organization_name
+        description: Name of the organization.
       - name: customer_type
         description: Type of customer account ("api" for API customers, "subscription" for Pro/Team customers).
       - name: actor_type
@@ -308,8 +331,7 @@ models:
         description: Sum of all four token types. Zero rather than null when no breakdown is reported.
       - name: estimated_cost
         description: >
-          Estimated Claude Code cost in whole currency units, summed across models. Converted
-          in this model from the source value, which Anthropic reports in fractional cents.
+          Estimated Claude Code cost in fractional cents (minor units), summed across models.
           Null when no breakdown is reported.
       - name: estimated_cost_currency
         description: Currency code for the estimated cost.

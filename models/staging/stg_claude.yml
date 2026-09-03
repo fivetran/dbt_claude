@@ -53,13 +53,9 @@ models:
       - name: product
         description: Anthropic product surface that produced the cost ("chat", "claude_code", "cowork", "office_agent", "claude_in_chrome", "claude_design", "claude-tag" aka Claude in Slack, "other").
       - name: amount
-        description: >
-          Amount (post-discount, pre-credit) in whole currency units. Converted in this model
-          from the source value, which Anthropic reports in fractional cents.
+        description: Amount (post-discount, pre-credit) in fractional cents (minor units).
       - name: list_amount
-        description: >
-          List-price amount (pre-discount) in whole currency units. Converted in this model
-          from the source value, which Anthropic reports in fractional cents.
+        description: List-price amount (pre-discount) in fractional cents (minor units).
       - name: starting_date
         description: Start of the reporting period (cast to date).
       - name: ending_date
@@ -254,8 +250,6 @@ models:
         description: Organization role of the user ("admin", "billing", "claude_code_user", "developer", "managed", "membership_admin", "owner", "primary_owner", "user").
       - name: name
         description: Display name of the user.
-      - name: type
-        description: Object type ("user").
       - name: email
         description: Email address of the user.
       - name: _fivetran_synced
@@ -274,8 +268,6 @@ models:
         description: True when the account has been deleted, or when the user is no longer a member of the organization or its associated organizations.
       - name: name
         description: Full name of the user actor, if provided. May be "Deleted User" for deleted or deprovisioned accounts.
-      - name: type
-        description: Always "user_actor".
       - name: email
         description: The user's email address, including for users who are no longer members of the organization or its associated organizations. Null when the account has been deleted and for system-minted service accounts.
       - name: _fivetran_synced
@@ -322,8 +314,6 @@ models:
         description: Timestamp when the workspace was created.
       - name: display_color
         description: Hex color used to display the workspace in the Anthropic Console.
-      - name: type
-        description: Object type ("workspace").
       - name: data_residency_workspace_geo
         description: Geographic region where the workspace's data resides.
       - name: data_residency_default_inference_geo
@@ -468,5 +458,39 @@ models:
         description: Number of skill invocations in Claude for Word.
       - name: web_search_count
         description: Number of web searches performed across all surfaces.
+      - name: _fivetran_synced
+        description: "{{ doc('_fivetran_synced') }}"
+
+  - name: stg_claude__workspace_member
+    description: Staged membership records linking users to the workspaces they belong to.
+    columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
+      - name: user_id
+        description: Identifier of the user. Joins to `stg_claude__users.user_id`.
+        tests:
+          - not_null
+      - name: workspace_id
+        description: Identifier of the workspace. Joins to `stg_claude__workspace.workspace_id`.
+        tests:
+          - not_null
+      - name: workspace_role
+        description: >
+          Role the user holds in this workspace ("workspace_admin", "workspace_billing",
+          "workspace_developer", "workspace_user").
+      - name: _fivetran_synced
+        description: "{{ doc('_fivetran_synced') }}"
+
+  - name: stg_claude__organization
+    description: Staged organization the Claude account belongs to.
+    columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
+      - name: organization_id
+        description: Unique identifier for the organization.
+        tests:
+          - not_null
+      - name: name
+        description: Name of the organization.
       - name: _fivetran_synced
         description: "{{ doc('_fivetran_synced') }}"

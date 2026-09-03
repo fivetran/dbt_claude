@@ -239,3 +239,18 @@ seeds:
         web_search_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
         _fivetran_deleted: boolean
         _fivetran_synced: timestamp
+    workspace_member:
+      +column_types:
+        user_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        workspace_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        workspace_role: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp
+    organization:
+      +column_types:
+        id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        name: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp

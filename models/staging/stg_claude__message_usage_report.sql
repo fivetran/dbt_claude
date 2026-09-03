@@ -31,7 +31,7 @@ final as (
         cast(starting_at as date) as starting_date,
         cast(ending_at as date) as ending_date,
         workspace_id,
-        service_tier,
+        lower(service_tier) as service_tier,
         context_window,
         lower(model) as model,
         coalesce(cache_creation_ephemeral_1_h_input_token, 0) as cache_creation_ephemeral_1_h_input_token,

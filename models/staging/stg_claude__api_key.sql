@@ -28,7 +28,6 @@ final as (
         workspace_id,
         name,
         partial_key_hint,
-        {# type, #} -- always api_key
         status,
         created_at,
         created_by_id,
@@ -37,7 +36,7 @@ final as (
 
     from fields
 
-    where not coalesce(_fivetran_deleted, false)
+    {# where not coalesce(_fivetran_deleted, false) #}
 )
 
 select * from final

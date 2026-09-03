@@ -28,13 +28,13 @@ final as (
         added_at,
         role,
         name,
-        -- type, -- Always user
         lower(email) as email,
-        _fivetran_synced
+        _fivetran_synced,
+        _fivetran_deleted as is_deleted
 
     from fields
 
-    where not coalesce(_fivetran_deleted, false)
+    {# where not coalesce(_fivetran_deleted, false) #}
 )
 
 select * from final

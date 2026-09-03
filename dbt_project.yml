@@ -26,3 +26,5 @@ vars:
     api_key: "{{ source('claude', 'api_key') }}"
     workspace: "{{ source('claude', 'workspace') }}"
     enterprise_user_activity: "{{ source('claude', 'enterprise_user_activity') }}"
+    workspace_member: "{{ source('claude', 'workspace_member') }}"
+    organization: "{{ source('claude', 'organization') }}"

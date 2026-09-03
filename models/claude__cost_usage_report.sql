@@ -287,5 +287,5 @@ final as (
 
 select *
 from final
-{# where coalesce(claude_cost, 0) != 0
-   or coalesce(unit_quantity, 0) != 0 #}
+where coalesce(claude_cost, 0) != 0
+   or coalesce(unit_quantity, 0) != 0

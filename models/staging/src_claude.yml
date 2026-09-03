@@ -453,3 +453,37 @@ sources:
             description: "{{ doc('_fivetran_deleted') }}"
           - name: _fivetran_synced
             description: "{{ doc('_fivetran_synced') }}"
+
+      - name: workspace_member
+        identifier: "{{ var('claude__workspace_member_identifier', 'workspace_member') }}"
+        description: Membership records linking users to the workspaces they belong to. Unique on user_id and workspace_id.
+        columns:
+          - name: user_id
+            description: Identifier of the user.
+          - name: workspace_id
+            description: Identifier of the workspace.
+          - name: type
+            description: Object type ("workspace_member").
+          - name: workspace_role
+            description: >
+              Role the user holds in this workspace ("workspace_admin", "workspace_billing",
+              "workspace_developer", "workspace_restricted_developer", "workspace_user").
+          - name: _fivetran_deleted
+            description: "{{ doc('_fivetran_deleted') }}"
+          - name: _fivetran_synced
+            description: "{{ doc('_fivetran_synced') }}"
+
+      - name: organization
+        identifier: "{{ var('claude__organization_identifier', 'organization') }}"
+        description: The organization the Claude account belongs to. Unique on id.
+        columns:
+          - name: id
+            description: Unique identifier for the organization.
+          - name: name
+            description: Name of the organization.
+          - name: type
+            description: Object type ("organization").
+          - name: _fivetran_deleted
+            description: "{{ doc('_fivetran_deleted') }}"
+          - name: _fivetran_synced
+            description: "{{ doc('_fivetran_synced') }}"
