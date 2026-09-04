@@ -7,6 +7,9 @@ models:
   claude:
     +schema: claude
     +materialized: table
+    intermediate:
+      +schema: int_claude
+      +materialized: view
     staging:
       +schema: stg_claude
       +materialized: view
@@ -28,3 +31,4 @@ vars:
     enterprise_user_activity: "{{ source('claude', 'enterprise_user_activity') }}"
     workspace_member: "{{ source('claude', 'workspace_member') }}"
     organization: "{{ source('claude', 'organization') }}"
+    claude__enterprise_user_activity_pass_through_metrics: []

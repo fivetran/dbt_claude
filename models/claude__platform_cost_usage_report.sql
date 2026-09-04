@@ -6,6 +6,8 @@
     ('output_token', 'output')
 ] %}
 
+{% set using_workspace = var('claude__using_workspace', True) %}
+
 with cost_report as (
 
     select *
@@ -27,14 +29,14 @@ api_key as (
 -- One row per api key, date_day, model and token type. Service tier, context window and inference geo dropped
 usage_unpivoted as (
 
-    {% for column_name, unit_type in token_columns %}
+    {% for column_name, token_unit_type in token_columns %}
     select
         source_relation,
         starting_date as date_day,
         workspace_id,
         api_key_id,
         model,
-        '{{ unit_type }}' as unit_type,
+        '{{ token_unit_type }}' as token_unit_type,
         {{ column_name }} as unit_quantity
 
     from message_usage_report
@@ -56,9 +58,11 @@ usage as (
         coalesce(usage_unpivoted.workspace_id, api_key.workspace_id, '__org__') as workspace_key,
         usage_unpivoted.api_key_id,
         api_key.name as api_key_name,
+        {% if using_workspace -%}
         api_key.workspace_name,
+        {% endif -%}
         usage_unpivoted.model,
-        usage_unpivoted.unit_type,
+        usage_unpivoted.token_unit_type,
         sum(usage_unpivoted.unit_quantity) as unit_quantity
 
     from usage_unpivoted
@@ -66,16 +70,16 @@ usage as (
         on usage_unpivoted.api_key_id = api_key.api_key_id
         and usage_unpivoted.source_relation = api_key.source_relation
 
-    {{ dbt_utils.group_by(n=9) }}
+    {{ dbt_utils.group_by(n=9 if using_workspace else 8) }}
 ),
 
 -- each api key's share of the workspace tokens of the same type that date_day
-share_by_unit_type as (
+share_by_token_unit_type as (
 
     select
         usage.*,
         unit_quantity / nullif(sum(unit_quantity) over (
-            partition by source_relation, date_day, workspace_key, model, unit_type
+            partition by source_relation, date_day, workspace_key, model, token_unit_type
         ), 0) as token_share
 
     from usage
@@ -92,7 +96,9 @@ web_search_usage as (
         coalesce(coalesce(message_usage_report.workspace_id, api_key.workspace_id), '__org__') as workspace_key,
         message_usage_report.api_key_id,
         api_key.name as api_key_name,
+        {% if using_workspace -%}
         api_key.workspace_name,
+        {% endif -%}
         sum(message_usage_report.server_tool_use_web_search_request) as web_search_requests
 
     from message_usage_report
@@ -101,7 +107,7 @@ web_search_usage as (
         and message_usage_report.source_relation = api_key.source_relation
 
     where message_usage_report.server_tool_use_web_search_request > 0
-    {{ dbt_utils.group_by(n=7) }}
+    {{ dbt_utils.group_by(n=7 if using_workspace else 6) }}
 ),
 
 -- each api key's share of the workspace's web search requests that day
@@ -117,7 +123,7 @@ share_web_search as (
 ),
 
 -- One row per workspace cost slice: source_relation, date_day, workspace, model, cost_type
--- and unit_type. This is the grain every allocation branch below joins back to.
+-- and token_unit_type. This is the grain every allocation branch below joins back to.
 cost as (
 
     select
@@ -127,7 +133,7 @@ cost as (
         coalesce(workspace_id, '__org__') as workspace_key,
         model,
         cost_type,
-        unit_type,
+        token_unit_type,
         max(currency) as currency, -- currently always USD
         sum(amount) as amount
 
@@ -136,31 +142,33 @@ cost as (
 ),
 
 -- cost that names a token type is allocated on that token type's share
-allocated_by_unit_type as (
+allocated_by_token_unit_type as (
 
     select
         cost.source_relation,
         cost.date_day,
-        coalesce(cost.workspace_id, share_by_unit_type.workspace_id) as workspace_id,
-        share_by_unit_type.workspace_name,
-        share_by_unit_type.api_key_id,
-        share_by_unit_type.api_key_name,
+        coalesce(cost.workspace_id, share_by_token_unit_type.workspace_id) as workspace_id,
+        {% if using_workspace -%}
+        share_by_token_unit_type.workspace_name,
+        {% endif -%}
+        share_by_token_unit_type.api_key_id,
+        share_by_token_unit_type.api_key_name,
         cost.model,
         cost.cost_type,
-        cost.unit_type,
-        share_by_unit_type.unit_quantity,
-        share_by_unit_type.token_share,
-        cost.amount * share_by_unit_type.token_share as claude_cost,
+        cost.token_unit_type,
+        share_by_token_unit_type.unit_quantity,
+        share_by_token_unit_type.token_share,
+        cost.amount * share_by_token_unit_type.token_share as claude_cost,
         cost.currency,
         'token_share' as allocation_method
 
     from cost
-    inner join share_by_unit_type
-        on cost.source_relation = share_by_unit_type.source_relation
-        and cost.date_day = share_by_unit_type.date_day
-        and cost.workspace_key = share_by_unit_type.workspace_key
-        and cost.model = share_by_unit_type.model
-        and cost.unit_type = share_by_unit_type.unit_type
+    join share_by_token_unit_type
+        on cost.source_relation = share_by_token_unit_type.source_relation
+        and cost.date_day = share_by_token_unit_type.date_day
+        and cost.workspace_key = share_by_token_unit_type.workspace_key
+        and cost.model = share_by_token_unit_type.model
+        and cost.token_unit_type = share_by_token_unit_type.token_unit_type
 
     where cost.cost_type = 'tokens'
 ),
@@ -172,12 +180,14 @@ allocated_web_search as (
         cost.source_relation,
         cost.date_day,
         coalesce(cost.workspace_id, share_web_search.workspace_id) as workspace_id,
+        {% if using_workspace -%}
         share_web_search.workspace_name,
+        {% endif -%}
         share_web_search.api_key_id,
         share_web_search.api_key_name,
         cost.model,
         cost.cost_type,
-        cost.unit_type,
+        cost.token_unit_type,
         cast(null as {{ dbt.type_int() }}) as unit_quantity,
         share_web_search.request_share as token_share,
         cost.amount * share_web_search.request_share as claude_cost,
@@ -185,7 +195,7 @@ allocated_web_search as (
         'web_search_request_share' as allocation_method
 
     from cost
-    inner join share_web_search
+    join share_web_search
         on cost.source_relation = share_web_search.source_relation
         and cost.date_day = share_web_search.date_day
         and cost.workspace_key = share_web_search.workspace_key
@@ -195,7 +205,7 @@ allocated_web_search as (
 
 allocated as (
 
-    select * from allocated_by_unit_type
+    select * from allocated_by_token_unit_type
     union all
     select * from allocated_web_search
 ),
@@ -210,7 +220,7 @@ allocated_by_slice as (
         coalesce(workspace_id, '__org__') as workspace_key,
         model,
         cost_type,
-        unit_type,
+        token_unit_type,
         sum(claude_cost) as allocated_cost
 
     from allocated
@@ -223,19 +233,21 @@ unallocated as (
         cost.source_relation,
         cost.date_day,
         cost.workspace_id,
+        {% if using_workspace -%}
         cast(null as {{ dbt.type_string() }}) as workspace_name,
+        {% endif -%}
         cast(null as {{ dbt.type_string() }}) as api_key_id,
         cast(null as {{ dbt.type_string() }}) as api_key_name,
         cost.model,
         cost.cost_type,
-        cost.unit_type,
+        cost.token_unit_type,
         cast(null as {{ dbt.type_int() }}) as unit_quantity,
         cast(null as {{ dbt.type_float() }}) as token_share,
         cost.amount - coalesce(allocated_by_slice.allocated_cost, 0) as claude_cost,
         cost.currency,
         'unallocated' as allocation_method
 
-    -- model and unit_type are null on non-token cost (web search, session usage), and
+    -- model and token_unit_type are null on non-token cost (web search, session usage), and
     -- null = null is never true, so those two columns need a null-safe comparison or every
     -- such slice would join to nothing and get double-counted as unallocated
     from cost
@@ -245,7 +257,7 @@ unallocated as (
         and cost.workspace_key = allocated_by_slice.workspace_key
         and cost.model is not distinct from allocated_by_slice.model
         and cost.cost_type = allocated_by_slice.cost_type
-        and cost.unit_type is not distinct from allocated_by_slice.unit_type
+        and cost.token_unit_type is not distinct from allocated_by_slice.token_unit_type
 
     where abs(cost.amount - coalesce(allocated_by_slice.allocated_cost, 0)) > 0.000001
 ),
@@ -263,7 +275,9 @@ final as (
         source_relation,
         date_day,
         workspace_id,
+        {% if using_workspace -%}
         workspace_name,
+        {% endif -%}
         api_key_id,
         api_key_name,
         model,
@@ -275,7 +289,7 @@ final as (
             else model
         end as model_family,
         cost_type,
-        unit_type,
+        token_unit_type,
         unit_quantity,
         token_share,
         claude_cost,

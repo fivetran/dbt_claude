@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: claude__cost_usage_report
+  - name: claude__platform_cost_usage_report
     description: >
       Organization cost joined to API message usage, with cost allocated down to the API key
       that consumed it. One row per API key, day, model, cost type and token type. Service
@@ -12,15 +12,15 @@ models:
       internal analytics project.
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - source_relation
-            - date_day
-            - workspace_id
-            - model
-            - cost_type
-            - unit_type
-            - api_key_id
-            - allocation_method
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - date_day
+              - workspace_id
+              - model
+              - cost_type
+              - token_unit_type
+              - api_key_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -47,7 +47,7 @@ models:
           back to the raw `model` value when none of those match.
       - name: cost_type
         description: Category of cost ("code_execution", "session_usage", "tokens", "web_search").
-      - name: unit_type
+      - name: token_unit_type
         description: >
           Token type the cost and usage apply to ("input", "cache_read", "cache_creation_5m",
           "cache_creation_1h", "output"). Null for cost that is not token based.
@@ -77,7 +77,7 @@ models:
           matched, so the cost is carried at workspace grain -- this covers session usage and
           code execution cost, which names no model or token type to allocate on.
 
-  - name: claude__enterprise_user_report
+  - name: claude__enterprise_cost_usage_report
     description: >
       Enterprise per-user cost joined to per-user token usage. One row per actor, day, product,
       model, cost type and token type. Speed, context window and inference geo are summed away
@@ -87,14 +87,15 @@ models:
       project.
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - source_relation
-            - date_day
-            - actor_user_id
-            - product
-            - model
-            - cost_type
-            - unit_type
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - date_day
+              - actor_user_id
+              - product
+              - model
+              - cost_type
+              - token_unit_type
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -107,7 +108,7 @@ models:
       - name: actor_user_id
         description: >
           Identifier of the enterprise actor. Joins to
-          `stg_claude__enterprise_user_actor.actor_id`.
+          `stg_claude__enterprise_user_actor.actor_user_id`.
       - name: actor_email
         description: Email address of the actor, lowercased.
       - name: actor_name
@@ -128,7 +129,7 @@ models:
         description: >
           Category of cost ("code_execution", "tokens", "web_search"). Null on rows carrying
           usage that has no matching cost.
-      - name: unit_type
+      - name: token_unit_type
         description: >
           Token type the cost and usage apply to ("input", "cache_read", "cache_creation_5m",
           "cache_creation_1h", "output"). Null for cost that is not token based.
@@ -161,24 +162,27 @@ models:
       so actors with no cost or activity still appear with null measures.
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - source_relation
-            - actor_user_id
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - user_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
-      - name: actor_user_id
+      - name: user_id
         description: Unique identifier for the enterprise actor.
+      - name: workspace_user_id
+        description: >
+          Identifier of the matching workspace user. Null for actors with no workspace user
+          record, such as offboarded people and non-user API actors.
       - name: email
         description: Email address of the actor, lowercased.
       - name: name
         description: Full name of the actor, falling back to the workspace user name.
-      - name: is_actor_deleted
-        description: Whether the actor is deleted or no longer a member of the organization.
-      - name: user_id
+      - name: is_user_deleted
         description: >
-          Identifier of the matching workspace user. Null for actors with no workspace user
-          record, such as offboarded people and non-user API actors.
+          Whether the actor or the matching workspace user is deleted or no longer a member of
+          the organization.
       - name: role
         description: >
           Organization role of the user ("admin", "billing", "claude_code_user", "developer",
@@ -186,8 +190,6 @@ models:
           has no workspace user record.
       - name: joined_organization_at
         description: Timestamp when the user joined the organization.
-      - name: is_workspace_user
-        description: Whether the actor also appears in the workspace users table.
       - name: count_workspaces
         description: >
           Number of distinct workspaces the user belongs to. Null for actors with no matching
@@ -200,6 +202,10 @@ models:
         description: >
           Whether the user holds the workspace_admin role in at least one workspace. Null for
           actors with no matching workspace user.
+      - name: is_workspace_developer
+        description: >
+          Whether the user holds the workspace_developer or workspace_restricted_developer role
+          in at least one workspace. Null for actors with no matching workspace user.
       - name: lifetime_claude_cost
         description: Cost after discounts and before credits, in fractional cents (minor units). All time.
       - name: month_to_date_claude_cost
@@ -254,6 +260,26 @@ models:
         description: Messages sent in Claude Cowork. All time.
       - name: month_to_date_cowork_messages
         description: Messages sent in Claude Cowork. Current calendar month only.
+      - name: lifetime_cowork_sessions
+        description: Distinct Claude Cowork sessions. All time.
+      - name: month_to_date_cowork_sessions
+        description: Distinct Claude Cowork sessions. Current calendar month only.
+      - name: lifetime_design_messages
+        description: Messages sent in Claude Design. All time.
+      - name: month_to_date_design_messages
+        description: Messages sent in Claude Design. Current calendar month only.
+      - name: lifetime_design_sessions
+        description: Distinct Claude Design sessions. All time.
+      - name: month_to_date_design_sessions
+        description: Distinct Claude Design sessions. Current calendar month only.
+      - name: lifetime_office_messages
+        description: Messages sent across the Word, Excel, PowerPoint, and Outlook Claude add-ins, combined. All time.
+      - name: month_to_date_office_messages
+        description: Messages sent across the Word, Excel, PowerPoint, and Outlook Claude add-ins, combined. Current calendar month only.
+      - name: lifetime_office_sessions
+        description: Distinct sessions across the Word, Excel, PowerPoint, and Outlook Claude add-ins, combined. All time.
+      - name: month_to_date_office_sessions
+        description: Distinct sessions across the Word, Excel, PowerPoint, and Outlook Claude add-ins, combined. Current calendar month only.
       - name: lifetime_web_searches
         description: Web searches performed across all surfaces. All time.
       - name: month_to_date_web_searches
@@ -275,9 +301,10 @@ models:
       parent instead of fanned out into per-model rows.
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - source_relation
-            - claude_code_usage_report_id
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - claude_code_usage_report_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -297,14 +324,20 @@ models:
         description: Email address of the actor. Populated only when `actor_type` is "user_actor".
       - name: actor_api_key_name
         description: Name of the API key. Populated only when `actor_type` is "api_actor".
-      - name: actor_user_id
+      - name: user_id
         description: >
-          Identifier of the matching enterprise actor, resolved by email. Null for API key
-          actors and for people with no enterprise actor record.
-      - name: actor_name
-        description: Full name of the matching enterprise actor, if one was found.
-      - name: is_actor_deleted
-        description: Whether the matching enterprise actor is deleted or no longer a member.
+          Identifier of the matching workspace user, resolved by email. Null for API key
+          actors and for people with no workspace user record.
+      - name: user_name
+        description: Full name of the matching workspace user, if one was found.
+      - name: user_role
+        description: >
+          Organization role of the matching workspace user ("admin", "billing",
+          "claude_code_user", "developer", "managed", "membership_admin", "owner",
+          "primary_owner", "user"). Null for API key actors and for people with no workspace
+          user record.
+      - name: is_user_deleted
+        description: Whether the matching workspace user is deleted or no longer a member.
       - name: terminal_type
         description: Terminal or environment Claude Code ran in.
       - name: count_sessions

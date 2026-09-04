@@ -12,3 +12,4 @@ fivetran_id_010,ws_abc123,0.0600,tokens,2025-01-02 00:00:00 UTC,2025-01-02 23:59
 fivetran_id_011,ws_abc123,1.0000,tokens,2025-01-03 00:00:00 UTC,2025-01-03 23:59:59 UTC,Uncached input tokens with no matching usage,uncached_input_tokens,claude-3-5-sonnet-20241022,standard,USD,0-200k,us,false,2025-01-04 06:00:00 UTC
 fivetran_id_012,ws_abc123,0.5000,web_search,2025-01-01 00:00:00 UTC,2025-01-01 23:59:59 UTC,Web search requests,,,,USD,,us,false,2025-01-02 06:00:00 UTC
 fivetran_id_013,ws_abc123,0.2000,session_usage,2025-01-01 00:00:00 UTC,2025-01-01 23:59:59 UTC,Session usage,,,,USD,,us,false,2025-01-02 06:00:00 UTC
+fivetran_id_014,,1.8900,web_search,2025-01-04 00:00:00 UTC,2025-01-04 23:59:59 UTC,Web search requests (org level),,,,USD,,us,false,2025-01-05 06:00:00 UTC

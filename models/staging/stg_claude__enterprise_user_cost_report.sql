@@ -41,7 +41,7 @@ final as (
             when 'cache_creation.ephemeral_1h_input_tokens' then 'cache_creation_1h'
             when 'output_tokens' then 'output'
             else nullif(lower(token_type), '')
-        end as unit_type,
+        end as token_unit_type,
         data_refreshed_at,
         speed,
         organization_id,

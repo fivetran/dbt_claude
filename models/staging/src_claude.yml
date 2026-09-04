@@ -297,6 +297,8 @@ sources:
       - name: workspace
         identifier: "{{ var('claude__workspace_identifier', 'workspace') }}"
         description: Workspaces within the organization. Workspaces group API keys and scope usage and cost reporting.
+        config:
+          enabled: "{{ var('claude__using_workspace', true) }}"
         columns:
           - name: id
             description: Unique identifier for the workspace.
@@ -457,6 +459,8 @@ sources:
       - name: workspace_member
         identifier: "{{ var('claude__workspace_member_identifier', 'workspace_member') }}"
         description: Membership records linking users to the workspaces they belong to. Unique on user_id and workspace_id.
+        config:
+          enabled: "{{ var('claude__using_workspace_member', true) }}"
         columns:
           - name: user_id
             description: Identifier of the user.
@@ -476,6 +480,8 @@ sources:
       - name: organization
         identifier: "{{ var('claude__organization_identifier', 'organization') }}"
         description: The organization the Claude account belongs to. Unique on id.
+        config:
+          enabled: "{{ var('claude__using_organization', true) }}"
         columns:
           - name: id
             description: Unique identifier for the organization.

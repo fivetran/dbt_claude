@@ -1,6 +1,3 @@
-{#- dbt-bigquery renders date_trunc as timestamp_trunc(cast(... as timestamp)), which returns a
-   TIMESTAMP. The date columns compared against it are DATE, and BigQuery will not compare the
-   two, so pin the result to a date. -#}
 {%- set month_start = 'cast(' ~ dbt.date_trunc('month', 'current_date') ~ ' as date)' -%}
 
 {% set cost_metrics = [
@@ -18,8 +15,23 @@
     ('chat_messages', 'chat_metrics_message_count'),
     ('chat_conversations', 'chat_metrics_distinct_conversation_count'),
     ('cowork_messages', 'cowork_metrics_message_count'),
+    ('cowork_sessions', 'cowork_metrics_distinct_session_count'),
+    ('design_messages', 'design_metrics_message_count'),
+    ('design_sessions', 'design_metrics_distinct_session_count'),
+    ('office_messages', 'office_metrics_word_message_count + office_metrics_excel_message_count + office_metrics_outlook_message_count + office_metrics_powerpoint_message_count'),
+    ('office_sessions', 'office_metrics_word_distinct_session_count + office_metrics_excel_distinct_session_count + office_metrics_outlook_distinct_session_count + office_metrics_powerpoint_distinct_session_count'),
     ('web_searches', 'web_search_count')
 ] %}
+
+{# Additional numeric activity metrics passed through from enterprise_user_activity are summed the same way as the defaults above. #}
+{% for field in var('claude__enterprise_user_activity_pass_through_metrics', []) %}
+    {% if field is mapping %}
+        {% set field_name = field.alias if field.alias else field.name %}
+    {% else %}
+        {% set field_name = field %}
+    {% endif %}
+    {% do activity_metrics.append((field_name, field_name)) %}
+{% endfor %}
 
 with enterprise_user_actor as (
 
@@ -36,7 +48,7 @@ users as (
 enterprise_report as (
 
     select *
-    from {{ ref('claude__enterprise_user_report') }}
+    from {{ ref('claude__enterprise_cost_usage_report') }}
 ),
 
 enterprise_user_activity as (
@@ -45,17 +57,21 @@ enterprise_user_activity as (
     from {{ ref('stg_claude__enterprise_user_activity') }}
 ),
 
+{% if var('claude__using_workspace_member', True) %}
 workspace_member as (
 
     select *
     from {{ ref('stg_claude__workspace_member') }}
 ),
+{% endif %}
 
+{% if var('claude__using_workspace', True) %}
 workspace as (
 
     select *
     from {{ ref('stg_claude__workspace') }}
 ),
+{% endif %}
 
 -- Cost and tokens per actor, all time and for the current calendar month. Both windows are
 -- rolled up in one pass with conditional aggregation rather than joining two summaries.
@@ -84,8 +100,8 @@ activity_rollup as (
         source_relation,
         user_id as actor_user_id,
         {% for alias, column_name in activity_metrics -%}
-        sum({{ column_name }}) as lifetime_{{ alias }},
-        sum(case when activity_date >= {{ month_start }} then {{ column_name }} end) as month_to_date_{{ alias }},
+        sum(coalesce({{ column_name }}, 0)) as lifetime_{{ alias }},
+        sum(case when activity_date >= {{ month_start }} then coalesce({{ column_name }}, 0) end) as month_to_date_{{ alias }},
         {% endfor -%}
         count(distinct activity_date) as lifetime_active_days,
         count(distinct case when activity_date >= {{ month_start }} then activity_date end) as month_to_date_active_days,
@@ -96,6 +112,7 @@ activity_rollup as (
     {{ dbt_utils.group_by(n=2) }}
 ),
 
+{% if var('claude__using_workspace_member', True) %}
 -- Workspace membership for the workspace user matched above. A user can belong to more
 -- than one workspace, so this is rolled up to one row per user before it is joined onto the
 -- actor grain below, and never joins workspace_member directly to enterprise_user_actor.
@@ -105,39 +122,47 @@ workspace_rollup as (
         workspace_member.source_relation,
         workspace_member.user_id,
         count(distinct workspace_member.workspace_id) as count_workspaces,
+        {% if var('claude__using_workspace', True) -%}
         {{ fivetran_utils.string_agg('distinct workspace.name', "', '") }} as workspace_names,
+        {% endif -%}
         max(case when workspace_member.workspace_role = 'workspace_admin' then 1 else 0 end) = 1
             as is_workspace_admin,
         max(case when workspace_member.workspace_role in ('workspace_developer', 'workspace_restricted_developer') then 1 else 0 end) = 1
             as is_workspace_developer
     from workspace_member
+    {% if var('claude__using_workspace', True) -%}
     left join workspace
         on workspace_member.workspace_id = workspace.workspace_id
         and workspace_member.source_relation = workspace.source_relation
+    {%- endif %}
 
     {{ dbt_utils.group_by(n=2) }}
 ),
+{% endif %}
 
 final as (
 
     select
         enterprise_user_actor.source_relation,
-        enterprise_user_actor.actor_id as actor_user_id,
-        enterprise_user_actor.email,
+        enterprise_user_actor.actor_user_id as user_id,
+        users.user_id as workspace_user_id,
+        coalesce(enterprise_user_actor.email, users.email) as email,
         coalesce(enterprise_user_actor.name, users.name) as name,
-        enterprise_user_actor.is_deleted as is_actor_deleted,
+        coalesce(enterprise_user_actor.is_deleted, false) or coalesce(users.is_deleted, false) as is_user_deleted,
 
         -- role information, present only for actors that also appear as workspace users
-        users.user_id,
         users.role,
         users.added_at as joined_organization_at,
-        users.user_id is not null as is_workspace_user,
 
         -- workspace membership, present only for actors with a matching workspace user
+        {% if var('claude__using_workspace_member', True) -%}
         workspace_rollup.count_workspaces,
+        {% if var('claude__using_workspace', True) -%}
         workspace_rollup.workspace_names,
+        {% endif -%}
         workspace_rollup.is_workspace_admin,
         workspace_rollup.is_workspace_developer,
+        {% endif -%}
 
         -- cost and usage
         {% for alias, column_name in cost_metrics -%}
@@ -162,23 +187,23 @@ final as (
 
     from enterprise_user_actor
 
-    -- users.email is unique, so this cannot fan out. Only about half of actors have a users
-    -- row, so role is null for the rest (offboarded people and non-user API actors).
     left join users
-        on lower(enterprise_user_actor.email) = lower(users.email)
+        on enterprise_user_actor.email = users.email
         and enterprise_user_actor.source_relation = users.source_relation
 
     left join cost_rollup
-        on enterprise_user_actor.actor_id = cost_rollup.actor_user_id
+        on enterprise_user_actor.actor_user_id = cost_rollup.actor_user_id
         and enterprise_user_actor.source_relation = cost_rollup.source_relation
 
     left join activity_rollup
-        on enterprise_user_actor.actor_id = activity_rollup.actor_user_id
+        on enterprise_user_actor.actor_user_id = activity_rollup.actor_user_id
         and enterprise_user_actor.source_relation = activity_rollup.source_relation
 
+    {% if var('claude__using_workspace_member', True) -%}
     left join workspace_rollup
-        on users.user_id = workspace_rollup.user_id
+        on enterprise_user_actor.actor_user_id = workspace_rollup.user_id
         and enterprise_user_actor.source_relation = workspace_rollup.source_relation
+    {%- endif %}
 )
 
 select *

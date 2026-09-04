@@ -1,3 +1,4 @@
+{{ config(enabled=var('claude__using_workspace', True)) }}
 
 with base as (
 
@@ -31,11 +32,10 @@ final as (
         data_residency_workspace_geo,
         data_residency_default_inference_geo,
         data_residency_allowed_inference_geo,
-        _fivetran_synced
+        _fivetran_synced,
+        _fivetran_deleted as is_deleted
 
     from fields
-
-    where not coalesce(_fivetran_deleted, false)
 )
 
 select * from final

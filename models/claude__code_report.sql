@@ -10,17 +10,19 @@ model_breakdown as (
     from {{ ref('stg_claude__claude_code_usage_report_model_breakdown') }}
 ),
 
-enterprise_user_actor as (
+users as (
 
     select *
-    from {{ ref('stg_claude__enterprise_user_actor') }}
+    from {{ ref('stg_claude__users') }}
 ),
 
+{% if var('claude__using_organization', True) %}
 organization as (
 
     select *
     from {{ ref('stg_claude__organization') }}
 ),
+{% endif %}
 
 -- Per-model token and cost detail is reported for only about 1% of usage report rows, so it
 -- is rolled up onto the parent rather than fanned out into per-model rows -- otherwise almost
@@ -49,16 +51,19 @@ final as (
         claude_code_usage_report.claude_code_usage_report_id,
         claude_code_usage_report.report_date,
         claude_code_usage_report.organization_id,
+        {% if var('claude__using_organization', True) %}
         organization.name as organization_name,
+        {% endif %}
         claude_code_usage_report.customer_type,
 
         -- an actor is either a person, identified by email, or an api key, identified by name
         claude_code_usage_report.actor_type,
         claude_code_usage_report.actor_email_address,
         claude_code_usage_report.actor_api_key_name,
-        enterprise_user_actor.actor_id as actor_user_id,
-        enterprise_user_actor.name as actor_name,
-        enterprise_user_actor.is_deleted as is_actor_deleted,
+        users.user_id as user_id,
+        users.name as user_name,
+        users.role as user_role,
+        users.is_deleted as is_user_deleted,
 
         claude_code_usage_report.terminal_type,
 
@@ -90,13 +95,15 @@ final as (
         and claude_code_usage_report.source_relation = breakdown_rollup.source_relation
 
     -- only user actors carry an email, so api key rows simply find no actor
-    left join enterprise_user_actor
-        on lower(claude_code_usage_report.actor_email_address) = lower(enterprise_user_actor.email)
-        and claude_code_usage_report.source_relation = enterprise_user_actor.source_relation
+    left join users
+        on claude_code_usage_report.actor_email_address = users.email
+        and claude_code_usage_report.source_relation = users.source_relation
 
+    {% if var('claude__using_organization', True) %}
     left join organization
         on claude_code_usage_report.organization_id = organization.organization_id
         and claude_code_usage_report.source_relation = organization.source_relation
+    {% endif %}
 )
 
 select *
