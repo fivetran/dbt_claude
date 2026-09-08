@@ -16,3 +16,5 @@ models:
         description: >
           Name of the workspace the API key belongs to. Not present when `claude__using_workspace`
           is disabled.
+      - name: is_deleted
+        description: Boolean indicating whether the API key was soft-deleted by Fivetran.

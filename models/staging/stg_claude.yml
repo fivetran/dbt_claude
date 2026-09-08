@@ -308,6 +308,8 @@ models:
         description: Type of actor that created the API key ("service_account", "user").
       - name: _fivetran_synced
         description: "{{ doc('_fivetran_synced') }}"
+      - name: is_deleted
+        description: Boolean indicating whether the API key was soft-deleted by Fivetran.
 
   - name: stg_claude__workspace
     description: Staged workspaces within the organization. Workspaces group API keys and scope usage and cost reporting.

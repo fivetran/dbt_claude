@@ -8,8 +8,7 @@ models:
     +schema: claude
     +materialized: table
     intermediate:
-      +schema: int_claude
-      +materialized: view
+      +materialized: ephemeral
     staging:
       +schema: stg_claude
       +materialized: view

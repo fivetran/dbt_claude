@@ -39,6 +39,10 @@ models:
           attributed to an API key (see `allocation_method`).
       - name: api_key_name
         description: Name of the API key. Null on rows not attributed to an API key.
+      - name: is_api_key_deleted
+        description: >
+          Whether the API key is deleted or no longer active. Null on rows not attributed to an
+          API key.
       - name: model
         description: Claude model the cost and usage apply to.
       - name: model_family
