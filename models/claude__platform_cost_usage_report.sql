@@ -59,6 +59,7 @@ usage as (
         usage_unpivoted.api_key_id,
         api_key.name as api_key_name,
         api_key.is_deleted as is_api_key_deleted,
+        api_key.is_creator_deleted,
         {% if using_workspace -%}
         api_key.workspace_name,
         {% endif -%}
@@ -71,7 +72,7 @@ usage as (
         on usage_unpivoted.api_key_id = api_key.api_key_id
         and usage_unpivoted.source_relation = api_key.source_relation
 
-    {{ dbt_utils.group_by(n=10 if using_workspace else 9) }}
+    {{ dbt_utils.group_by(n=11 if using_workspace else 10) }}
 ),
 
 -- each api key's share of the workspace tokens of the same type that date_day
@@ -98,6 +99,7 @@ web_search_usage as (
         message_usage_report.api_key_id,
         api_key.name as api_key_name,
         api_key.is_deleted as is_api_key_deleted,
+        api_key.is_creator_deleted,
         {% if using_workspace -%}
         api_key.workspace_name,
         {% endif -%}
@@ -109,7 +111,7 @@ web_search_usage as (
         and message_usage_report.source_relation = api_key.source_relation
 
     where message_usage_report.server_tool_use_web_search_request > 0
-    {{ dbt_utils.group_by(n=8 if using_workspace else 7) }}
+    {{ dbt_utils.group_by(n=9 if using_workspace else 8) }}
 ),
 
 -- each api key's share of the workspace's web search requests that day
@@ -156,6 +158,7 @@ allocated_by_token_unit_type as (
         share_by_token_unit_type.api_key_id,
         share_by_token_unit_type.api_key_name,
         share_by_token_unit_type.is_api_key_deleted,
+        share_by_token_unit_type.is_creator_deleted,
         cost.model,
         cost.cost_type,
         cost.token_unit_type,
@@ -189,6 +192,7 @@ allocated_web_search as (
         share_web_search.api_key_id,
         share_web_search.api_key_name,
         share_web_search.is_api_key_deleted,
+        share_web_search.is_creator_deleted,
         cost.model,
         cost.cost_type,
         cost.token_unit_type,
@@ -243,6 +247,7 @@ unallocated as (
         cast(null as {{ dbt.type_string() }}) as api_key_id,
         cast(null as {{ dbt.type_string() }}) as api_key_name,
         cast(null as {{ dbt.type_boolean() }}) as is_api_key_deleted,
+        cast(null as {{ dbt.type_boolean() }}) as is_creator_deleted,
         cost.model,
         cost.cost_type,
         cost.token_unit_type,
@@ -286,6 +291,7 @@ final as (
         api_key_id,
         api_key_name,
         is_api_key_deleted,
+        is_creator_deleted,
         model,
         case
             when model like '%opus%' then 'opus'

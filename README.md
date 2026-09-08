@@ -5,7 +5,7 @@ This dbt package transforms data from Fivetran's Claude connector into analytics
 
 ## Resources
 
-- Number of materialized models¹: 31
+- Number of materialized models¹: 30
 - Connector documentation
   - [Claude connector documentation](https://fivetran.com/docs/connectors/applications/claude)
   - [Claude ERD](https://fivetran.com/docs/connectors/applications/claude#schemainformation)
@@ -142,7 +142,7 @@ models:
       +schema: my_new_schema_name # Leave +schema: blank to use the default target_schema.
       staging:
         +schema: my_new_schema_name # Leave +schema: blank to use the default target_schema.
-      intermediate:
+      intermediate: # ephemeral by default
         +schema: my_new_schema_name # Leave +schema: blank to use the default target_schema.
 ```
 

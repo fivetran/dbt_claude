@@ -23,7 +23,8 @@ final as (
     select
         api_key.*,
         users.name as created_by_name,
-        users.email as created_by_email
+        users.email as created_by_email,
+        users.is_deleted as is_creator_deleted
         {% if var('claude__using_workspace', True) -%}
         , workspace.name as workspace_name
         {% endif %}
