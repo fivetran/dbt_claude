@@ -122,22 +122,32 @@ workspace_rollup as (
         workspace_member.source_relation,
         workspace_member.user_id,
         count(distinct workspace_member.workspace_id) as count_workspaces,
-        {% if var('claude__using_workspace', True) -%}
-        {{ fivetran_utils.string_agg('distinct workspace.name', "', '") }} as workspace_names,
-        {% endif -%}
         max(case when workspace_member.workspace_role = 'workspace_admin' then 1 else 0 end) = 1
             as is_workspace_admin,
         max(case when workspace_member.workspace_role in ('workspace_developer', 'workspace_restricted_developer') then 1 else 0 end) = 1
             as is_workspace_developer
     from workspace_member
-    {% if var('claude__using_workspace', True) -%}
-    left join workspace
-        on workspace_member.workspace_id = workspace.workspace_id
-        and workspace_member.source_relation = workspace.source_relation
-    {%- endif %}
 
     {{ dbt_utils.group_by(n=2) }}
 ),
+
+{% if var('claude__using_workspace', True) %}
+-- Split from workspace_rollup because Redshift does not allow a LISTAGG-family function
+-- alongside another DISTINCT aggregate (count(distinct workspace_id) above) in one query.
+workspace_names_rollup as (
+
+    select
+        workspace_member.source_relation,
+        workspace_member.user_id,
+        {{ fivetran_utils.string_agg('distinct workspace.name', "', '") }} as workspace_names
+    from workspace_member
+    left join workspace
+        on workspace_member.workspace_id = workspace.workspace_id
+        and workspace_member.source_relation = workspace.source_relation
+
+    {{ dbt_utils.group_by(n=2) }}
+),
+{% endif %}
 {% endif %}
 
 final as (
@@ -158,7 +168,7 @@ final as (
         {% if var('claude__using_workspace_member', True) -%}
         workspace_rollup.count_workspaces,
         {% if var('claude__using_workspace', True) -%}
-        workspace_rollup.workspace_names,
+        workspace_names_rollup.workspace_names,
         {% endif -%}
         workspace_rollup.is_workspace_admin,
         workspace_rollup.is_workspace_developer,
@@ -203,6 +213,11 @@ final as (
     left join workspace_rollup
         on enterprise_user_actor.actor_user_id = workspace_rollup.user_id
         and enterprise_user_actor.source_relation = workspace_rollup.source_relation
+    {% if var('claude__using_workspace', True) -%}
+    left join workspace_names_rollup
+        on enterprise_user_actor.actor_user_id = workspace_names_rollup.user_id
+        and enterprise_user_actor.source_relation = workspace_names_rollup.source_relation
+    {%- endif %}
     {%- endif %}
 )
 
