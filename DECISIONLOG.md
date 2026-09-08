@@ -8,7 +8,7 @@ Web search and session-usage cost don't carry a model or token type, so unlike t
 
 ## Session-Usage and Code-Execution Cost Stays Unallocated
 
-`claude__platform_cost_usage_report`'s token-share allocation joins on `model` in addition to date, workspace, and token type, because a workspace's tokens by model is the only reasonable basis for splitting per-model token cost across API keys. Session-usage and code-execution cost report no model at all, so they never match that join and fall through to the `unallocated` branch. We considered widening the join to an overall, model-agnostic token share so this cost would land on individual API keys, but decided against it — mixing an exact per-model allocation with an approximate model-agnostic one in the same column would make `claude_cost` harder to reason about, and the unallocated remainder already reconciles to source and is clearly labeled via `allocation_method`.
+`claude__platform_cost_usage_report`'s token-share allocation joins on `model` in addition to date, workspace, and token type. Session-usage and code-execution cost report no model at all, so they never match that join and fall through to the `unallocated` branch. We considered widening the join to an overall, model-agnostic token share so this cost would land on individual API keys, but decided against it — mixing an exact per-model allocation with an approximate model-agnostic one in the same column would make `claude_cost` harder to reason about, and the unallocated remainder already reconciles to source and is clearly labeled via `allocation_method`.
 
 ## `claude__code_report` Resolves Identity Through `stg_claude__users`, Not `stg_claude__enterprise_user_actor`
 
