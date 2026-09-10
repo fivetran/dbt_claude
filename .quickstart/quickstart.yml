@@ -1,0 +1,31 @@
+database_key: claude_database
+schema_key: claude_schema
+
+dbt_versions: ">=1.3.0 <3.0.0"
+
+table_variables:
+  claude__using_organization:
+    - organization
+  claude__using_workspace:
+    - workspace
+  claude__using_workspace_member:
+    - workspace_member
+
+destination_configurations:
+  databricks:
+    dispatch:
+      - macro_namespace: dbt_utils
+        search_order: [ 'spark_utils', 'dbt_utils' ]
+
+public_models: [
+  claude__platform_cost_usage_report,
+  claude__enterprise_cost_usage_report,
+  claude__code_report,
+  claude__user_summary
+]
+
+supported_vars:
+  claude__enterprise_user_activity_pass_through_metrics:
+    type: dictionary
+    description: "Additional numeric `ENTERPRISE_USER_ACTIVITY` metric columns to sum into `claude__user_summary`"
+    display_name: "Additional Enterprise User Activity Metrics"

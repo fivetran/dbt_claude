@@ -1,0 +1,5 @@
+_fivetran_id,organization_id,customer_type,date,terminal_type,actor_type,actor_api_key_name,actor_email_address,core_metrics_pull_requests_by_claude_code,core_metrics_lines_of_code_removed,core_metrics_lines_of_code_added,core_metrics_commits_by_claude_code,core_metrics_num_sessions,_fivetran_deleted,_fivetran_synced
+fivetran_id_cc_001,org_xyz789,subscription,2025-01-15 00:00:00,vscode,user_actor,,alice.admin@example.com,3,142,580,7,12,false,2025-01-16 06:00:00
+fivetran_id_cc_002,org_xyz789,subscription,2025-01-15 00:00:00,terminal,user_actor,,bob.builder@example.com,1,55,210,2,5,false,2025-01-16 06:00:00
+fivetran_id_cc_003,org_xyz789,api,2025-01-16 00:00:00,vscode,api_actor,ci-bot-key,,0,30,95,1,3,false,2025-01-17 06:00:00
+fivetran_id_cc_004,org_xyz789,subscription,2025-01-16 00:00:00,vscode,user_actor,,alice.admin@example.com,2,88,410,4,9,false,2025-01-17 06:00:00

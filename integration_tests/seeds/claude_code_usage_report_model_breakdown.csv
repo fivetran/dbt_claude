@@ -1,0 +1,4 @@
+claude_code_usage_report_fivetran_id,model,tokens_output,tokens_input,estimated_cost_currency,tokens_cache_creation,estimated_cost_amount,tokens_cache_read,_fivetran_deleted,_fivetran_synced
+fivetran_id_cc_001,claude-3-5-sonnet-20241022,12400,48000,USD,2500,82,1800,false,2025-01-16 06:00:00
+fivetran_id_cc_001,claude-opus-4-5,3200,9800,USD,0,95,0,false,2025-01-16 06:00:00
+fivetran_id_cc_002,claude-3-5-sonnet-20241022,4100,16200,USD,800,28,600,false,2025-01-16 06:00:00

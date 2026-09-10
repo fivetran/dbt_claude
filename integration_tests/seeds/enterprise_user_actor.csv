@@ -1,0 +1,4 @@
+id,deleted,name,type,email,_fivetran_deleted,_fivetran_synced
+actor_user_aaa,false,Alice Admin,user,alice.admin@example.com,false,2025-01-01 06:00:00
+actor_user_bbb,false,Bob Builder,user,bob.builder@example.com,false,2025-01-01 06:00:00
+actor_user_ccc,true,Former Member,user,former.member@example.com,false,2025-01-01 06:00:00
