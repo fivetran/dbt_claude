@@ -30,7 +30,7 @@ final as (
         cast(ending_at as {{ dbt.type_timestamp() }}) as ending_at,
         cast(starting_at as date) as starting_date,
         cast(ending_at as date) as ending_date,
-        coalesce(amount, 0) as amount, -- in cents
+        coalesce(cast(amount as {{ dbt.type_float() }}), 0) as amount, -- in cents
         currency, -- always USD as of Sep 2026
         lower(cost_type) as cost_type,
         description,

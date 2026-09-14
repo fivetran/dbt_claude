@@ -52,8 +52,12 @@ models:
         description: Claude model the cost and usage apply to.
       - name: model_family
         description: >
-          The model's family, parsed from `model` ("opus", "sonnet", "fable", "haiku"). Falls
-          back to the raw `model` value when none of those match.
+          The model's family, parsed from `model` ("opus", "sonnet", "fable", "haiku"). Null
+          when the model name does not match a known Claude family.
+      - name: model_variant
+        description: >
+          The model's version, parsed from `model` (e.g. "4.5", "4.6", "5"). Null when the
+          model name does not match a known Claude version pattern.
       - name: cost_type
         description: Category of cost ("code_execution", "session_usage", "tokens", "web_search").
       - name: token_unit_type
@@ -132,8 +136,12 @@ models:
         description: Claude model the cost and usage apply to.
       - name: model_family
         description: >
-          The model's family, parsed from `model` ("opus", "sonnet", "fable", "haiku"). Falls
-          back to the raw `model` value when none of those match.
+          The model's family, parsed from `model` ("opus", "sonnet", "fable", "haiku"). Null
+          when the model name does not match a known Claude family.
+      - name: model_variant
+        description: >
+          The model's version, parsed from `model` (e.g. "4.5", "4.6", "5"). Null when the
+          model name does not match a known Claude version pattern.
       - name: cost_type
         description: >
           Category of cost ("code_execution", "tokens", "web_search"). Null on rows carrying
@@ -145,8 +153,17 @@ models:
       - name: unit_quantity
         description: >
           Tokens of this unit type the actor consumed that day. Null for cost that is not
-          token based. Request counts are not carried at this grain, because they are reported
-          per usage row rather than per token type.
+          token based.
+      - name: request
+        description: >
+          Total API requests the actor made for this product and model on this day. Only
+          populated on rows where `token_unit_type = 'input'`; null on all other token type
+          rows to avoid double-counting across the unpivoted grain.
+      - name: server_tool_use_web_search_request
+        description: >
+          Total web search tool calls made by the actor for this product and model on this day.
+          Only populated on rows where `token_unit_type = 'input'`; null on all other token
+          type rows to avoid double-counting across the unpivoted grain.
       - name: claude_cost
         description: >
           Cost after discounts and before credits, in fractional cents (minor units),
@@ -361,6 +378,12 @@ models:
         description: Lines of code removed across all files by Claude Code.
       - name: count_models_used
         description: Distinct Claude models named in the per-model breakdown. Null when no breakdown is reported.
+      - name: count_model_families_used
+        description: >
+          Distinct model families used ("opus", "sonnet", "fable", "haiku"). Null when no breakdown is reported.
+      - name: count_model_variants_used
+        description: >
+          Distinct model versions used (e.g. "4.5", "4.6", "5"). Null when no breakdown is reported.
       - name: tokens_input
         description: Input tokens consumed, summed across models. Null when no breakdown is reported.
       - name: tokens_output

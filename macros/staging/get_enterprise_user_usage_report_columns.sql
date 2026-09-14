@@ -20,7 +20,7 @@
     {"name": "inference_geo",                               "datatype": dbt.type_string()},
     {"name": "cache_read_input_token",                      "datatype": dbt.type_int()},
     {"name": "total_token",                                 "datatype": dbt.type_int()},
-    {"name": "_fivetran_deleted",                           "datatype": "boolean"},
+    {"name": "_fivetran_deleted",                           "datatype": dbt.type_boolean()},
     {"name": "_fivetran_synced",                            "datatype": dbt.type_timestamp()}
 ] %}
 

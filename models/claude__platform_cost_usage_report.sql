@@ -293,13 +293,8 @@ final as (
         is_api_key_deleted,
         is_creator_deleted,
         model,
-        case
-            when model like '%opus%' then 'opus'
-            when model like '%sonnet%' then 'sonnet'
-            when model like '%fable%' then 'fable'
-            when model like '%haiku%' then 'haiku'
-            else model
-        end as model_family,
+        {{ claude.model_family('model') }} as model_family,
+        {{ claude.model_variant('model') }} as model_variant,
         cost_type,
         token_unit_type,
         unit_quantity,

@@ -23,7 +23,7 @@
     {"name": "office_metrics_word_distinct_session_count",                         "datatype": dbt.type_int()},
     {"name": "office_metrics_word_message_count",                                  "datatype": dbt.type_int()},
     {"name": "web_search_count",                                                   "datatype": dbt.type_int()},
-    {"name": "_fivetran_deleted",                                                  "datatype": "boolean"},
+    {"name": "_fivetran_deleted",                                                  "datatype": dbt.type_boolean()},
     {"name": "_fivetran_synced",                                                   "datatype": dbt.type_timestamp()}
 ] %}
 

@@ -16,7 +16,7 @@ sources:
           - name: workspace_id
             description: ID of the Workspace this cost is associated with.
           - name: amount
-            description: Cost amount in lowest currency units (e.g. cents) as a decimal string. For example, "123.45" in "USD" represents $1.23.
+            description: Cost amount in lowest currency units (e.g. cents).
           - name: cost_type
             description: Category of cost ("code_execution", "session_usage", "tokens", "web_search").
           - name: starting_at

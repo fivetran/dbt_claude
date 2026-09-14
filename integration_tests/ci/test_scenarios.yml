@@ -13,7 +13,7 @@ schema_variable_name: "claude_schema"
 include_databricks_sql: true
 include_sqlserver: false
 include_duckdb: true
-include_dbt_compile: enabled  # Set to disabled to skip dbt compile step (for repos not yet updated to pass)
+include_dbt_compile: true
 
 # Test scenarios - FIRST MUST BE DEFAULT WITH NO VARS
 test_scenarios:

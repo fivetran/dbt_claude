@@ -34,6 +34,8 @@ organization as (
 
 -- One row per actor, date_day, product, model and token type. Speed, context window and inference
 -- geo are summed away so both sides share a grain.
+-- request and server_tool_use_web_search_request are carried only on the input branch (null
+-- elsewhere) so they sum to the correct total without being multiplied across token types.
 usage_long as (
 
     {% for column_name, token_unit_type in token_columns %}
@@ -45,7 +47,9 @@ usage_long as (
         product,
         model,
         '{{ token_unit_type }}' as token_unit_type,
-        {{ column_name }} as unit_quantity
+        {{ column_name }} as unit_quantity,
+        {{ 'request' if loop.first else 'cast(null as ' ~ dbt.type_int() ~ ')' }} as request,
+        {{ 'server_tool_use_web_search_request' if loop.first else 'cast(null as ' ~ dbt.type_int() ~ ')' }} as server_tool_use_web_search_request
 
     from enterprise_user_usage_report
     where {{ column_name }} > 0
@@ -63,7 +67,9 @@ usage as (
         model,
         token_unit_type,
         max(organization_id) as organization_id,
-        sum(unit_quantity) as unit_quantity
+        sum(unit_quantity) as unit_quantity,
+        sum(request) as request,
+        sum(server_tool_use_web_search_request) as server_tool_use_web_search_request
 
     from usage_long
     {{ dbt_utils.group_by(n=6) }}
@@ -103,6 +109,8 @@ cost_with_usage as (
         cost.cost_type,
         cost.token_unit_type,
         usage.unit_quantity,
+        usage.request,
+        usage.server_tool_use_web_search_request,
         cost.claude_cost,
         cost.claude_list_cost,
         cost.currency,
@@ -131,6 +139,8 @@ usage_without_cost as (
         cast(null as {{ dbt.type_string() }}) as cost_type,
         usage.token_unit_type,
         usage.unit_quantity,
+        usage.request,
+        usage.server_tool_use_web_search_request,
         cast(null as {{ dbt.type_float() }}) as claude_cost,
         cast(null as {{ dbt.type_float() }}) as claude_list_cost,
         cast(null as {{ dbt.type_string() }}) as currency,
@@ -170,16 +180,13 @@ final as (
         enterprise_user_actor.is_deleted as is_actor_deleted,
         combined.product,
         combined.model,
-        case
-            when combined.model like '%opus%' then 'opus'
-            when combined.model like '%sonnet%' then 'sonnet'
-            when combined.model like '%fable%' then 'fable'
-            when combined.model like '%haiku%' then 'haiku'
-            else combined.model
-        end as model_family,
+        {{ claude.model_family('combined.model') }} as model_family,
+        {{ claude.model_variant('combined.model') }} as model_variant,
         combined.cost_type,
         combined.token_unit_type,
         combined.unit_quantity,
+        combined.request,
+        combined.server_tool_use_web_search_request,
         combined.claude_cost,
         combined.claude_list_cost,
         combined.claude_list_cost - combined.claude_cost as claude_discount,

@@ -6,7 +6,10 @@ with claude_code_usage_report as (
 
 model_breakdown as (
 
-    select *
+    select
+        *,
+        {{ claude.model_family('model') }} as model_family,
+        {{ claude.model_variant('model') }} as model_variant
     from {{ ref('stg_claude__claude_code_usage_report_model_breakdown') }}
 ),
 
@@ -33,6 +36,8 @@ breakdown_rollup as (
         source_relation,
         claude_code_usage_report_fivetran_id,
         count(distinct model) as count_models_used,
+        count(distinct model_family) as count_model_families_used,
+        count(distinct model_variant) as count_model_variants_used,
         max(estimated_cost_currency) as estimated_cost_currency,
         sum(estimated_cost_amount) as estimated_cost, -- fractional cents
         sum(tokens_input) as tokens_input,
@@ -76,6 +81,8 @@ final as (
 
         -- per-model rollup, null on the rows that report no model breakdown
         breakdown_rollup.count_models_used,
+        breakdown_rollup.count_model_families_used,
+        breakdown_rollup.count_model_variants_used,
         breakdown_rollup.tokens_input,
         breakdown_rollup.tokens_output,
         breakdown_rollup.tokens_cache_creation,
