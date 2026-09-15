@@ -52,7 +52,9 @@ usage_long as (
         {{ 'server_tool_use_web_search_request' if loop.first else 'cast(null as ' ~ dbt.type_int() ~ ')' }} as server_tool_use_web_search_request
 
     from enterprise_user_usage_report
+    {% if not loop.first %}
     where {{ column_name }} > 0
+    {% endif %}
     {{ 'union all' if not loop.last }}
     {% endfor %}
 ),
