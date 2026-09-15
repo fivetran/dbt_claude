@@ -209,3 +209,5 @@ select *
 from final
 where coalesce(claude_cost, 0) != 0
    or coalesce(unit_quantity, 0) != 0
+   or coalesce(request, 0) != 0
+   or coalesce(server_tool_use_web_search_request, 0) != 0

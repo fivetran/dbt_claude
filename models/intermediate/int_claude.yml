@@ -3,22 +3,3 @@ version: 2
 models:
   - name: int_claude__api_key
     description: API keys enriched with the creator's name and email and the owning workspace's name.
-    columns:
-      - name: source_relation
-        description: "{{ doc('source_relation') }}"
-      - name: api_key_id
-        description: Unique identifier for the API key.
-      - name: created_by_name
-        description: Name of the user who created the API key. Null when `created_by_type` is not "user".
-      - name: created_by_email
-        description: Email of the user who created the API key. Null when `created_by_type` is not "user".
-      - name: is_creator_deleted
-        description: >
-          Whether the user who created the API key is deleted or no longer a member of the
-          organization. Null when `created_by_type` is not "user".
-      - name: workspace_name
-        description: >
-          Name of the workspace the API key belongs to. Not present when `claude__using_workspace`
-          is disabled.
-      - name: is_deleted
-        description: Boolean indicating whether the API key was soft-deleted by Fivetran.

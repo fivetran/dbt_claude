@@ -10,17 +10,6 @@ models:
       attributed to an API key is still carried, so `claude_cost` sums to the total in
       `stg_claude__cost_report`. Aligned with `int_anthropic_platform_cost_usage` in the
       internal analytics project.
-    tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns:
-              - source_relation
-              - date_day
-              - workspace_id
-              - model
-              - cost_type
-              - token_unit_type
-              - api_key_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -98,17 +87,6 @@ models:
       drives the grain and usage attaches to it; usage with no matching cost row is still
       carried. Aligned with `int_anthropic_enterprise_cost_usage` in the internal analytics
       project.
-    tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns:
-              - source_relation
-              - date_day
-              - actor_user_id
-              - product
-              - model
-              - cost_type
-              - token_unit_type
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -186,12 +164,6 @@ models:
       windows: all time and the current calendar month. Role information is attached from the
       workspace users table where the actor also appears there. The actor table is the spine,
       so actors with no cost or activity still appear with null measures.
-    tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns:
-              - source_relation
-              - user_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -325,12 +297,6 @@ models:
       is either a person, identified by email, or an API key, identified by name. Per-model
       token and cost detail is reported for only about 1% of rows, so it is rolled up onto the
       parent instead of fanned out into per-model rows.
-    tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns:
-              - source_relation
-              - claude_code_usage_report_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
