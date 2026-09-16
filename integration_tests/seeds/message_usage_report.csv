@@ -1,0 +1,6 @@
+_fivetran_id,api_key_id,workspace_id,cache_creation_ephemeral_1_h_input_token,cache_creation_ephemeral_5_m_input_token,starting_at,ending_at,output_token,server_tool_use_web_search_request,uncached_input_token,model,service_tier,context_window,cache_read_input_token,_fivetran_deleted,_fivetran_synced
+fivetran_id_mu_001,apikey_001,ws_abc123,0,1500,2025-01-01 00:00:00,2025-01-01 23:59:59,2340,1,8200,claude-3-5-sonnet-20241022,standard,0-200k,750,false,2025-01-02 06:00:00
+fivetran_id_mu_002,apikey_002,ws_abc123,3200,0,2025-01-01 00:00:00,2025-01-01 23:59:59,980,2,4100,claude-opus-4-5,priority,0-200k,0,false,2025-01-02 06:00:00
+fivetran_id_mu_003,apikey_001,ws_abc123,0,0,2025-01-02 00:00:00,2025-01-02 23:59:59,5600,1,12000,claude-3-5-sonnet-20241022,standard,0-200k,2100,false,2025-01-03 06:00:00
+fivetran_id_mu_004,apikey_002,ws_abc123,0,500,2025-01-01 00:00:00,2025-01-01 23:59:59,660,0,1800,claude-3-5-sonnet-20241022,standard,0-200k,250,false,2025-01-02 06:00:00
+fivetran_id_mu_005,,,0,0,2025-01-04 00:00:00,2025-01-04 23:59:59,0,3,0,claude-3-5-sonnet-20241022,standard,0-200k,0,false,2025-01-05 06:00:00

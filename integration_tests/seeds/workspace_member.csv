@@ -1,0 +1,5 @@
+user_id,workspace_id,type,workspace_role,_fivetran_deleted,_fivetran_synced
+user_ws_001,ws_abc123,workspace_member,workspace_admin,false,2025-01-01 06:00:00
+user_ws_002,ws_abc123,workspace_member,workspace_developer,false,2025-01-01 06:00:00
+user_ws_001,ws_def456,workspace_member,workspace_user,false,2025-01-01 06:00:00
+user_ws_003,ws_ghi789,workspace_member,workspace_billing,false,2025-01-01 06:00:00

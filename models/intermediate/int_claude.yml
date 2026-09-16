@@ -1,0 +1,5 @@
+version: 2
+
+models:
+  - name: int_claude__api_key
+    description: API keys enriched with the creator's name and email and the owning workspace's name.

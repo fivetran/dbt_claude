@@ -1,0 +1,256 @@
+name: 'claude_integration_tests'
+version: '0.1.0'
+config-version: 2
+profile: 'integration_tests'
+
+vars:
+  claude_schema: claude_integration_tests
+
+dispatch:
+  - macro_namespace: dbt_utils
+    search_order: ['spark_utils', 'dbt_utils']
+
+models:
+  +persist_docs:
+    relation: true
+    columns: "{{ false if target.type in ('databricks') else true }}"
+  +schema: "claude_{{ var('directed_schema','dev') }}"
+  
+seeds:
+  +docs:
+    show: False
+  claude_integration_tests:
+    +quote_columns: "{{ target.type in ('redshift', 'postgres', 'duckdb') or var('fivetran_using_source_casing', false) }}"
+    claude_code_usage_report:
+      +column_types:
+        _fivetran_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        organization_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        customer_type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        date: timestamp
+        terminal_type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        actor_type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        actor_api_key_name: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        actor_email_address: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        core_metrics_pull_requests_by_claude_code: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        core_metrics_lines_of_code_removed: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        core_metrics_lines_of_code_added: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        core_metrics_commits_by_claude_code: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        core_metrics_num_sessions: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp
+    claude_code_usage_report_model_breakdown:
+      +column_types:
+        claude_code_usage_report_fivetran_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        model: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        tokens_output: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        tokens_input: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        estimated_cost_currency: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        tokens_cache_creation: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        estimated_cost_amount: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        tokens_cache_read: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp
+    cost_report:
+      +column_types:
+        _fivetran_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        workspace_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        amount: float
+        cost_type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        starting_at: timestamp
+        ending_at: timestamp
+        description: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        token_type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        model: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        service_tier: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        currency: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        context_window: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        inference_geo: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp
+    enterprise_user_actor:
+      +column_types:
+        id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        deleted: boolean
+        name: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        email: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp
+    enterprise_user_cost_report:
+      +column_types:
+        _fivetran_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        actor_user_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        product: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        amount: float
+        list_amount: float
+        starting_date: timestamp
+        ending_date: timestamp
+        cost_type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        token_type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        data_refreshed_at: timestamp
+        speed: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        organization_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        model: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        currency: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        context_window: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        inference_geo: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp
+    enterprise_user_usage_report:
+      +column_types:
+        _fivetran_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        actor_user_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        request: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        cache_creation_ephemeral_1_h_input_token: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        cache_creation_ephemeral_5_m_input_token: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        product: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        starting_date: timestamp
+        ending_date: timestamp
+        output_token: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        data_refreshed_at: timestamp
+        speed: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        server_tool_use_web_search_request: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        uncached_input_token: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        organization_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        model: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        context_window: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        inference_geo: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        cache_read_input_token: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        total_token: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp
+    message_usage_report:
+      +column_types:
+        _fivetran_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        api_key_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        workspace_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        cache_creation_ephemeral_1_h_input_token: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        cache_creation_ephemeral_5_m_input_token: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        starting_at: timestamp
+        ending_at: timestamp
+        output_token: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        server_tool_use_web_search_request: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        uncached_input_token: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        model: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        service_tier: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        context_window: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        cache_read_input_token: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp
+    users:
+      +column_types:
+        id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        added_at: timestamp
+        role: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        name: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        email: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp
+    api_key:
+      +column_types:
+        id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        workspace_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        name: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        partial_key_hint: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        status: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        created_at: timestamp
+        created_by_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        created_by_type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp
+    workspace:
+      +column_types:
+        id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        name: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        created_at: timestamp
+        display_color: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        data_residency_workspace_geo: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        data_residency_default_inference_geo: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        data_residency_allowed_inference_geo: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp
+    enterprise_user_activity:
+      +column_types:
+        date: date
+        user_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        chat_metrics_connectors_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        chat_metrics_distinct_artifacts_created_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        chat_metrics_distinct_conversation_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        chat_metrics_distinct_files_uploaded_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        chat_metrics_distinct_projects_created_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        chat_metrics_distinct_projects_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        chat_metrics_distinct_shared_artifacts_viewed_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        chat_metrics_distinct_skills_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        chat_metrics_message_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        chat_metrics_shared_conversations_viewed_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        chat_metrics_thinking_message_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        claude_code_metrics_core_metrics_commit_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        claude_code_metrics_core_metrics_distinct_session_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        claude_code_metrics_core_metrics_lines_of_code_added_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        claude_code_metrics_core_metrics_lines_of_code_removed_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        claude_code_metrics_core_metrics_pull_request_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        claude_code_metrics_tool_actions_edit_tool_accepted_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        claude_code_metrics_tool_actions_edit_tool_rejected_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        claude_code_metrics_tool_actions_multi_edit_tool_accepted_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        claude_code_metrics_tool_actions_multi_edit_tool_rejected_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        claude_code_metrics_tool_actions_notebook_edit_tool_accepted_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        claude_code_metrics_tool_actions_notebook_edit_tool_rejected_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        claude_code_metrics_tool_actions_write_tool_accepted_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        claude_code_metrics_tool_actions_write_tool_rejected_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        cowork_metrics_action_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        cowork_metrics_connectors_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        cowork_metrics_dispatch_turn_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        cowork_metrics_distinct_connectors_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        cowork_metrics_distinct_session_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        cowork_metrics_distinct_skills_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        cowork_metrics_message_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        cowork_metrics_skills_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        design_metrics_distinct_projects_created_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        design_metrics_distinct_projects_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        design_metrics_distinct_session_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        design_metrics_message_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_excel_connectors_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_excel_distinct_connectors_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_excel_distinct_session_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_excel_distinct_skills_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_excel_message_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_excel_skills_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_outlook_connectors_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_outlook_distinct_connectors_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_outlook_distinct_session_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_outlook_distinct_skills_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_outlook_message_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_outlook_skills_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_powerpoint_connectors_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_powerpoint_distinct_connectors_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_powerpoint_distinct_session_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_powerpoint_distinct_skills_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_powerpoint_message_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_powerpoint_skills_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_word_connectors_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_word_distinct_connectors_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_word_distinct_session_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_word_distinct_skills_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_word_message_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        office_metrics_word_skills_used_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        web_search_count: "{{ 'int64' if target.type == 'bigquery' else 'bigint' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp
+    workspace_member:
+      +column_types:
+        user_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        workspace_id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        workspace_role: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp
+    organization:
+      +column_types:
+        id: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        name: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
+        _fivetran_deleted: boolean
+        _fivetran_synced: timestamp

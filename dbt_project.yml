@@ -1,0 +1,20 @@
+name: 'claude'
+version: '0.1.0'
+config-version: 2
+require-dbt-version: [">=1.3.0", "<3.0.0"]
+
+models:
+  claude:
+    +schema: claude
+    +materialized: table
+    intermediate:
+      +materialized: ephemeral
+    staging:
+      +schema: stg_claude
+      +materialized: view
+      tmp:
+        +materialized: view
+
+vars:
+  claude:
+    claude__enterprise_user_activity_pass_through_metrics: []

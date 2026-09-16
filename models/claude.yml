@@ -1,0 +1,368 @@
+version: 2
+
+models:
+  - name: claude__platform_cost_usage_report
+    description: >
+      Organization cost joined to API message usage, with cost allocated down to the API key
+      that consumed it. One row per API key, day, model, cost type and token type. Service
+      tier, context window and inference geo are summed away because the cost report breaks
+      cost out by inference geo, which message usage never reports. Cost that cannot be
+      attributed to an API key is still carried, so `claude_cost` sums to the total in
+      `stg_claude__cost_report`. Aligned with `int_anthropic_platform_cost_usage` in the
+      internal analytics project.
+    columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
+      - name: date_day
+        description: Day the cost and usage apply to.
+      - name: workspace_id
+        description: >
+          ID of the Workspace the cost and usage belong to. Message usage does not always
+          report a workspace, so this falls back to the workspace recorded on the API key.
+          Null for organization-level cost that names no workspace.
+      - name: workspace_name
+        description: Name of the workspace. Null on rows not attributed to an API key.
+      - name: api_key_id
+        description: >
+          Identifier of the API key the cost was allocated to. Null when the cost could not be
+          attributed to an API key (see `allocation_method`).
+      - name: api_key_name
+        description: Name of the API key. Null on rows not attributed to an API key.
+      - name: is_api_key_deleted
+        description: >
+          Whether the API key is deleted or no longer active. Null on rows not attributed to an
+          API key.
+      - name: is_creator_deleted
+        description: >
+          Whether the user who created the API key is deleted or no longer a member of the
+          organization. Null on rows not attributed to an API key, and when the API key's
+          creator is not a user.
+      - name: model
+        description: Claude model the cost and usage apply to.
+      - name: model_family
+        description: >
+          The model's family, parsed from `model` ("opus", "sonnet", "fable", "haiku"). 'unclassified'
+          when the model name does not match a known Claude family.
+      - name: model_variant
+        description: >
+          The model's version, parsed from `model` (e.g. "4.5", "4.6", "5"). Null when the
+          model name does not match a known Claude version pattern.
+      - name: cost_type
+        description: Category of cost ("code_execution", "session_usage", "tokens", "web_search").
+      - name: token_unit_type
+        description: >
+          Token type the cost and usage apply to ("input", "cache_read", "cache_creation_5m",
+          "cache_creation_1h", "output"). Null for cost that is not token based.
+      - name: unit_quantity
+        description: >
+          Tokens of this unit type consumed by this API key that day. Null for cost that is
+          not token based, and on rows not attributed to an API key.
+      - name: token_share
+        description: >
+          The API key's share of the workspace tokens the cost was spread across. For token
+          cost this is its share of tokens of the same unit type; for non-token cost it is its
+          share of every token the workspace used that day. Sums to 1 within each group.
+      - name: claude_cost
+        description: >
+          Cost attributed to this row, in fractional cents (minor units), matching the unit
+          `stg_claude__cost_report.amount` is reported in. Equals the workspace cost for the
+          slice multiplied by `token_share`, except on unallocated rows where it is the
+          remainder that no API key could be attributed.
+      - name: currency
+        description: Currency code for the cost amount. Currently always "USD".
+      - name: allocation_method
+        description: >
+          How `claude_cost` was derived. "token_share" means it was allocated by the API key's
+          share of workspace tokens of the same unit type. "web_search_request_share" means it
+          was allocated by the API key's share of web search requests, which is exact because
+          web search bills at a flat rate per request. "unallocated" means no API key could be
+          matched, so the cost is carried at workspace grain -- this covers session usage and
+          code execution cost, which names no model or token type to allocate on.
+
+  - name: claude__enterprise_cost_usage_report
+    description: >
+      Enterprise per-user cost joined to per-user token usage. One row per actor, day, product,
+      model, cost type and token type. Speed, context window and inference geo are summed away
+      so both sides share a grain. The Analytics API reports per-user cost directly, so cost
+      drives the grain and usage attaches to it; usage with no matching cost row is still
+      carried. Aligned with `int_anthropic_enterprise_cost_usage` in the internal analytics
+      project.
+    columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
+      - name: date_day
+        description: Day the cost and usage apply to.
+      - name: organization_id
+        description: Identifier of the organization. Joins to `stg_claude__organization.organization_id`.
+      - name: organization_name
+        description: Name of the organization.
+      - name: actor_user_id
+        description: >
+          Identifier of the enterprise actor. Joins to
+          `stg_claude__enterprise_user_actor.actor_user_id`.
+      - name: actor_email
+        description: Email address of the actor, lowercased.
+      - name: actor_name
+        description: Full name of the actor, if provided.
+      - name: is_actor_deleted
+        description: Whether the actor is deleted or no longer a member of the organization.
+      - name: product
+        description: >
+          Anthropic product surface the cost and usage came from ("chat", "claude_code",
+          "cowork", "office_agent", "claude_in_chrome", "claude_design", "claude-tag", "other").
+      - name: model
+        description: Claude model the cost and usage apply to.
+      - name: model_family
+        description: >
+          The model's family, parsed from `model` ("opus", "sonnet", "fable", "haiku"). 'unclassified'
+          when the model name does not match a known Claude family.
+      - name: model_variant
+        description: >
+          The model's version, parsed from `model` (e.g. "4.5", "4.6", "5"). Null when the
+          model name does not match a known Claude version pattern.
+      - name: cost_type
+        description: >
+          Category of cost ("code_execution", "tokens", "web_search"). Null on rows carrying
+          usage that has no matching cost.
+      - name: token_unit_type
+        description: >
+          Token type the cost and usage apply to ("input", "cache_read", "cache_creation_5m",
+          "cache_creation_1h", "output"). Null for cost that is not token based.
+      - name: unit_quantity
+        description: >
+          Tokens of this unit type the actor consumed that day. Null for cost that is not
+          token based.
+      - name: request
+        description: >
+          Total API requests the actor made for this product and model on this day. Only
+          populated on rows where `token_unit_type = 'input'`; null on all other token type
+          rows to avoid double-counting across the unpivoted grain.
+      - name: server_tool_use_web_search_request
+        description: >
+          Total web search tool calls made by the actor for this product and model on this day.
+          Only populated on rows where `token_unit_type = 'input'`; null on all other token
+          type rows to avoid double-counting across the unpivoted grain.
+      - name: claude_cost
+        description: >
+          Cost after discounts and before credits, in fractional cents (minor units),
+          matching the unit `stg_claude__enterprise_user_cost_report.amount` is reported in.
+          Null on rows carrying usage that has no matching cost.
+      - name: claude_list_cost
+        description: List-price cost before discounts, in fractional cents (minor units).
+      - name: claude_discount
+        description: Difference between list cost and actual cost.
+      - name: currency
+        description: Currency code for the cost amounts. Currently always "USD".
+      - name: data_refreshed_at
+        description: >
+          Timestamp of the export the cost was served from. Data is typically refreshed every
+          4 hours but is not final until about 30 days after the usage date.
+
+  - name: claude__user_summary
+    description: >
+      One row per enterprise actor, summarising cost, usage and product activity over two
+      windows: all time and the current calendar month. Role information is attached from the
+      workspace users table where the actor also appears there. The actor table is the spine,
+      so actors with no cost or activity still appear with null measures.
+    columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
+      - name: user_id
+        description: Unique identifier for the enterprise actor.
+      - name: workspace_user_id
+        description: >
+          Identifier of the matching workspace user. Null for actors with no workspace user
+          record, such as offboarded people and non-user API actors.
+      - name: email
+        description: Email address of the actor, lowercased.
+      - name: name
+        description: Full name of the actor, falling back to the workspace user name.
+      - name: is_user_deleted
+        description: >
+          Whether the actor or the matching workspace user is deleted or no longer a member of
+          the organization.
+      - name: role
+        description: >
+          Organization role of the user ("admin", "billing", "claude_code_user", "developer",
+          "managed", "membership_admin", "owner", "primary_owner", "user"). Null when the actor
+          has no workspace user record.
+      - name: joined_organization_at
+        description: Timestamp when the user joined the organization.
+      - name: count_workspaces
+        description: >
+          Number of distinct workspaces the user belongs to. Null for actors with no matching
+          workspace user.
+      - name: workspace_names
+        description: >
+          Names of every workspace the user belongs to, comma-separated. Null for actors with
+          no matching workspace user.
+      - name: is_workspace_admin
+        description: >
+          Whether the user holds the workspace_admin role in at least one workspace. Null for
+          actors with no matching workspace user.
+      - name: is_workspace_developer
+        description: >
+          Whether the user holds the workspace_developer or workspace_restricted_developer role
+          in at least one workspace. Null for actors with no matching workspace user.
+      - name: lifetime_claude_cost
+        description: Cost after discounts and before credits, in fractional cents (minor units). All time.
+      - name: month_to_date_claude_cost
+        description: Cost after discounts and before credits, in fractional cents (minor units). Current calendar month only.
+      - name: lifetime_claude_list_cost
+        description: List-price cost before discounts, in fractional cents (minor units). All time.
+      - name: month_to_date_claude_list_cost
+        description: List-price cost before discounts, in fractional cents (minor units). Current calendar month only.
+      - name: lifetime_tokens
+        description: Tokens consumed across all token types. All time.
+      - name: month_to_date_tokens
+        description: Tokens consumed across all token types. Current calendar month only.
+      - name: lifetime_billed_days
+        description: Distinct days the actor had billed cost or usage, all time.
+      - name: month_to_date_billed_days
+        description: Distinct days the actor had billed cost or usage this calendar month.
+      - name: first_billed_date
+        description: Earliest day the actor had billed cost or usage.
+      - name: last_billed_date
+        description: Most recent day the actor had billed cost or usage.
+      - name: lifetime_claude_discount
+        description: Difference between lifetime list cost and lifetime cost.
+      - name: lifetime_claude_code_sessions
+        description: Distinct Claude Code sessions. All time.
+      - name: month_to_date_claude_code_sessions
+        description: Distinct Claude Code sessions. Current calendar month only.
+      - name: lifetime_claude_code_commits
+        description: Git commits created through Claude Code. All time.
+      - name: month_to_date_claude_code_commits
+        description: Git commits created through Claude Code. Current calendar month only.
+      - name: lifetime_claude_code_pull_requests
+        description: Pull requests created through Claude Code. All time.
+      - name: month_to_date_claude_code_pull_requests
+        description: Pull requests created through Claude Code. Current calendar month only.
+      - name: lifetime_lines_of_code_added
+        description: Lines of code added by Claude Code. All time.
+      - name: month_to_date_lines_of_code_added
+        description: Lines of code added by Claude Code. Current calendar month only.
+      - name: lifetime_lines_of_code_removed
+        description: Lines of code removed by Claude Code. All time.
+      - name: month_to_date_lines_of_code_removed
+        description: Lines of code removed by Claude Code. Current calendar month only.
+      - name: lifetime_chat_messages
+        description: Messages sent in Claude chat. All time.
+      - name: month_to_date_chat_messages
+        description: Messages sent in Claude chat. Current calendar month only.
+      - name: lifetime_chat_conversations
+        description: Distinct Claude chat conversations. All time.
+      - name: month_to_date_chat_conversations
+        description: Distinct Claude chat conversations. Current calendar month only.
+      - name: lifetime_cowork_messages
+        description: Messages sent in Claude Cowork. All time.
+      - name: month_to_date_cowork_messages
+        description: Messages sent in Claude Cowork. Current calendar month only.
+      - name: lifetime_cowork_sessions
+        description: Distinct Claude Cowork sessions. All time.
+      - name: month_to_date_cowork_sessions
+        description: Distinct Claude Cowork sessions. Current calendar month only.
+      - name: lifetime_design_messages
+        description: Messages sent in Claude Design. All time.
+      - name: month_to_date_design_messages
+        description: Messages sent in Claude Design. Current calendar month only.
+      - name: lifetime_design_sessions
+        description: Distinct Claude Design sessions. All time.
+      - name: month_to_date_design_sessions
+        description: Distinct Claude Design sessions. Current calendar month only.
+      - name: lifetime_office_messages
+        description: Messages sent across the Word, Excel, PowerPoint, and Outlook Claude add-ins, combined. All time.
+      - name: month_to_date_office_messages
+        description: Messages sent across the Word, Excel, PowerPoint, and Outlook Claude add-ins, combined. Current calendar month only.
+      - name: lifetime_office_sessions
+        description: Distinct sessions across the Word, Excel, PowerPoint, and Outlook Claude add-ins, combined. All time.
+      - name: month_to_date_office_sessions
+        description: Distinct sessions across the Word, Excel, PowerPoint, and Outlook Claude add-ins, combined. Current calendar month only.
+      - name: lifetime_web_searches
+        description: Web searches performed across all surfaces. All time.
+      - name: month_to_date_web_searches
+        description: Web searches performed across all surfaces. Current calendar month only.
+      - name: lifetime_active_days
+        description: Distinct days the actor recorded product activity, all time.
+      - name: month_to_date_active_days
+        description: Distinct days the actor recorded product activity this calendar month.
+      - name: first_active_date
+        description: Earliest day the actor recorded product activity.
+      - name: last_active_date
+        description: Most recent day the actor recorded product activity.
+
+  - name: claude__code_report
+    description: >
+      Claude Code activity, one row per actor, day, terminal type and customer type. An actor
+      is either a person, identified by email, or an API key, identified by name. Per-model
+      token and cost detail is reported for only about 1% of rows, so it is rolled up onto the
+      parent instead of fanned out into per-model rows.
+    columns:
+      - name: source_relation
+        description: "{{ doc('source_relation') }}"
+      - name: claude_code_usage_report_id
+        description: Fivetran-generated unique identifier for the usage report row.
+      - name: report_date
+        description: Date the Claude Code activity occurred.
+      - name: organization_id
+        description: Identifier of the organization. Joins to `stg_claude__organization.organization_id`.
+      - name: organization_name
+        description: Name of the organization.
+      - name: customer_type
+        description: Type of customer account ("api" for API customers, "subscription" for Pro/Team customers).
+      - name: actor_type
+        description: Type of actor ("api_actor", "user_actor").
+      - name: actor_email_address
+        description: Email address of the actor. Populated only when `actor_type` is "user_actor".
+      - name: actor_api_key_name
+        description: Name of the API key. Populated only when `actor_type` is "api_actor".
+      - name: user_id
+        description: >
+          Identifier of the matching workspace user, resolved by email. Null for API key
+          actors and for people with no workspace user record.
+      - name: user_name
+        description: Full name of the matching workspace user, if one was found.
+      - name: user_role
+        description: >
+          Organization role of the matching workspace user ("admin", "billing",
+          "claude_code_user", "developer", "managed", "membership_admin", "owner",
+          "primary_owner", "user"). Null for API key actors and for people with no workspace
+          user record.
+      - name: is_user_deleted
+        description: Whether the matching workspace user is deleted or no longer a member.
+      - name: terminal_type
+        description: Terminal or environment Claude Code ran in.
+      - name: count_sessions
+        description: Distinct Claude Code sessions initiated by this actor.
+      - name: count_commits
+        description: Git commits created through Claude Code.
+      - name: count_pull_requests
+        description: Pull requests created through Claude Code.
+      - name: count_lines_of_code_added
+        description: Lines of code added across all files by Claude Code.
+      - name: count_lines_of_code_removed
+        description: Lines of code removed across all files by Claude Code.
+      - name: count_models_used
+        description: Distinct Claude models named in the per-model breakdown. Null when no breakdown is reported.
+      - name: count_model_families_used
+        description: >
+          Distinct model families used ("opus", "sonnet", "fable", "haiku"). Null when no breakdown is reported.
+      - name: count_model_variants_used
+        description: >
+          Distinct model versions used (e.g. "4.5", "4.6", "5"). Null when no breakdown is reported.
+      - name: tokens_input
+        description: Input tokens consumed, summed across models. Null when no breakdown is reported.
+      - name: tokens_output
+        description: Output tokens generated, summed across models. Null when no breakdown is reported.
+      - name: tokens_cache_creation
+        description: Cache creation tokens consumed, summed across models. Null when no breakdown is reported.
+      - name: tokens_cache_read
+        description: Cache read tokens consumed, summed across models. Null when no breakdown is reported.
+      - name: total_tokens
+        description: Sum of all four token types. Zero rather than null when no breakdown is reported.
+      - name: estimated_cost
+        description: >
+          Estimated Claude Code cost in fractional cents (minor units), summed across models.
+          Null when no breakdown is reported.
+      - name: estimated_cost_currency
+        description: Currency code for the estimated cost.

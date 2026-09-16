@@ -1,0 +1,4 @@
+id,workspace_id,name,partial_key_hint,type,status,created_at,created_by_id,created_by_type,_fivetran_deleted,_fivetran_synced
+apikey_001,ws_abc123,CI Pipeline Key,sk-ant-****abcd,api_key,active,2024-03-05 11:00:00,user_ws_001,user,false,2025-01-01 06:00:00
+apikey_002,ws_def456,Analytics Key,sk-ant-****efgh,api_key,active,2024-06-01 08:15:00,user_ws_002,user,false,2025-01-01 06:00:00
+apikey_003,ws_abc123,Retired Key,sk-ant-****ijkl,api_key,archived,2024-01-10 16:45:00,user_ws_001,user,false,2025-01-01 06:00:00

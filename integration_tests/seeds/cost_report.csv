@@ -1,0 +1,15 @@
+_fivetran_id,workspace_id,amount,cost_type,starting_at,ending_at,description,token_type,model,service_tier,currency,context_window,inference_geo,_fivetran_deleted,_fivetran_synced
+fivetran_id_001,ws_abc123,3.0000,tokens,2025-01-01 00:00:00,2025-01-01 23:59:59,Uncached input tokens,uncached_input_tokens,claude-3-5-sonnet-20241022,standard,USD,0-200k,us,false,2025-01-02 06:00:00
+fivetran_id_002,ws_abc123,4.5000,tokens,2025-01-01 00:00:00,2025-01-01 23:59:59,Output tokens,output_tokens,claude-3-5-sonnet-20241022,standard,USD,0-200k,us,false,2025-01-02 06:00:00
+fivetran_id_003,ws_abc123,0.0300,tokens,2025-01-01 00:00:00,2025-01-01 23:59:59,Cache read input tokens,cache_read_input_tokens,claude-3-5-sonnet-20241022,standard,USD,0-200k,us,false,2025-01-02 06:00:00
+fivetran_id_004,ws_abc123,0.7500,tokens,2025-01-01 00:00:00,2025-01-01 23:59:59,5m cache creation tokens,cache_creation.ephemeral_5m_input_tokens,claude-3-5-sonnet-20241022,standard,USD,0-200k,us,false,2025-01-02 06:00:00
+fivetran_id_005,ws_abc123,6.1500,tokens,2025-01-01 00:00:00,2025-01-01 23:59:59,Uncached input tokens,uncached_input_tokens,claude-opus-4-5,priority,USD,0-200k,us,false,2025-01-02 06:00:00
+fivetran_id_006,ws_abc123,7.3500,tokens,2025-01-01 00:00:00,2025-01-01 23:59:59,Output tokens,output_tokens,claude-opus-4-5,priority,USD,0-200k,us,false,2025-01-02 06:00:00
+fivetran_id_007,ws_abc123,1.6000,tokens,2025-01-01 00:00:00,2025-01-01 23:59:59,1h cache creation tokens,cache_creation.ephemeral_1h_input_tokens,claude-opus-4-5,priority,USD,0-200k,us,false,2025-01-02 06:00:00
+fivetran_id_008,ws_abc123,3.6000,tokens,2025-01-02 00:00:00,2025-01-02 23:59:59,Uncached input tokens,uncached_input_tokens,claude-3-5-sonnet-20241022,standard,USD,0-200k,us,false,2025-01-03 06:00:00
+fivetran_id_009,ws_abc123,8.4000,tokens,2025-01-02 00:00:00,2025-01-02 23:59:59,Output tokens,output_tokens,claude-3-5-sonnet-20241022,standard,USD,0-200k,us,false,2025-01-03 06:00:00
+fivetran_id_010,ws_abc123,0.0600,tokens,2025-01-02 00:00:00,2025-01-02 23:59:59,Cache read input tokens,cache_read_input_tokens,claude-3-5-sonnet-20241022,standard,USD,0-200k,us,false,2025-01-03 06:00:00
+fivetran_id_011,ws_abc123,1.0000,tokens,2025-01-03 00:00:00,2025-01-03 23:59:59,Uncached input tokens with no matching usage,uncached_input_tokens,claude-3-5-sonnet-20241022,standard,USD,0-200k,us,false,2025-01-04 06:00:00
+fivetran_id_012,ws_abc123,0.5000,web_search,2025-01-01 00:00:00,2025-01-01 23:59:59,Web search requests,,,,USD,,us,false,2025-01-02 06:00:00
+fivetran_id_013,ws_abc123,0.2000,session_usage,2025-01-01 00:00:00,2025-01-01 23:59:59,Session usage,,,,USD,,us,false,2025-01-02 06:00:00
+fivetran_id_014,,1.8900,web_search,2025-01-04 00:00:00,2025-01-04 23:59:59,Web search requests (org level),,,,USD,,us,false,2025-01-05 06:00:00
