@@ -41,7 +41,7 @@ models:
         description: Claude model the cost and usage apply to.
       - name: model_family
         description: >
-          The model's family, parsed from `model` ("opus", "sonnet", "fable", "haiku"). Null
+          The model's family, parsed from `model` ("opus", "sonnet", "fable", "haiku"). 'unclassified'
           when the model name does not match a known Claude family.
       - name: model_variant
         description: >
@@ -114,7 +114,7 @@ models:
         description: Claude model the cost and usage apply to.
       - name: model_family
         description: >
-          The model's family, parsed from `model` ("opus", "sonnet", "fable", "haiku"). Null
+          The model's family, parsed from `model` ("opus", "sonnet", "fable", "haiku"). 'unclassified'
           when the model name does not match a known Claude family.
       - name: model_variant
         description: >

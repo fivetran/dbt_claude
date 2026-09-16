@@ -8,8 +8,8 @@ model_breakdown as (
 
     select
         *,
-        {{ claude.model_family('model') }} as model_family,
-        {{ claude.model_variant('model') }} as model_variant
+        {{ claude.claude_model_family('model') }} as model_family,
+        {{ claude.claude_model_variant('model') }} as model_variant
     from {{ ref('stg_claude__claude_code_usage_report_model_breakdown') }}
 ),
 

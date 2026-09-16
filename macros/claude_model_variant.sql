@@ -1,8 +1,8 @@
-{% macro model_variant(field) %}
-    {{ return(adapter.dispatch('model_variant', 'claude')(field)) }}
+{% macro claude_model_variant(field) %}
+    {{ return(adapter.dispatch('claude_model_variant', 'claude')(field)) }}
 {% endmacro %}
 
-{% macro default__model_variant(field) %}
+{% macro default__claude_model_variant(field) %}
 
 {%- set base = "lower(replace(replace(" ~ field ~ ", '[1m]', ''), '.', '-'))" -%}
 {%- set no_date = "regexp_replace(" ~ base ~ ", '-[0-9]{8}$', '')" -%}
