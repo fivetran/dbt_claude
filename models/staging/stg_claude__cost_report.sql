@@ -1,3 +1,4 @@
+{{ config(enabled=var('claude__using_cost_report', True)) }}
 
 with base as (
 

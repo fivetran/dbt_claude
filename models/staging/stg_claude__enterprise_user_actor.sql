@@ -1,3 +1,4 @@
+{{ config(enabled=var('claude__using_enterprise_user_actor', True)) }}
 
 with base as (
 

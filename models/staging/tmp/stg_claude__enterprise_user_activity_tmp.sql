@@ -1,3 +1,5 @@
+{{ config(enabled=var('claude__using_enterprise_user_activity', True)) }}
+
 {{
     fivetran_utils.union_connections(
         connection_dictionary='claude_sources',

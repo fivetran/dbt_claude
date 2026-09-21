@@ -1,3 +1,10 @@
+{{ config(enabled=var('claude__using_enterprise_user_actor', True) and var('claude__using_enterprise_user_cost_report', True) and var('claude__using_enterprise_user_usage_report', True)) }}
+
+{% set using_workspace = var('claude__using_workspace', True) %}
+{% set using_users = var('claude__using_users', True) %}
+{% set using_workspace_member = var('claude__using_workspace_member', True) %}
+{% set using_enterprise_user_activity = var('claude__using_enterprise_user_activity', True) %}
+
 {%- set month_start = 'cast(' ~ dbt.date_trunc('month', 'current_date') ~ ' as date)' -%}
 
 {% set cost_metrics = [
@@ -6,6 +13,7 @@
     ('tokens', 'unit_quantity')
 ] %}
 
+{% if using_enterprise_user_activity %}
 {% set activity_metrics = [
     ('claude_code_sessions', 'claude_code_metrics_core_metrics_distinct_session_count'),
     ('claude_code_commits', 'claude_code_metrics_core_metrics_commit_count'),
@@ -32,6 +40,9 @@
     {% endif %}
     {% do activity_metrics.append((field_name, field_name)) %}
 {% endfor %}
+{% else %}
+{% set activity_metrics = [] %}
+{% endif %}
 
 with enterprise_user_actor as (
 
@@ -39,11 +50,13 @@ with enterprise_user_actor as (
     from {{ ref('stg_claude__enterprise_user_actor') }}
 ),
 
+{% if using_users %}
 users as (
 
     select *
     from {{ ref('stg_claude__users') }}
 ),
+{% endif %}
 
 enterprise_report as (
 
@@ -51,13 +64,15 @@ enterprise_report as (
     from {{ ref('claude__enterprise_cost_usage_report') }}
 ),
 
+{% if using_enterprise_user_activity %}
 enterprise_user_activity as (
 
     select *
     from {{ ref('stg_claude__enterprise_user_activity') }}
 ),
+{% endif %}
 
-{% if var('claude__using_workspace_member', True) %}
+{% if using_workspace_member %}
 workspace_member as (
 
     select *
@@ -65,7 +80,7 @@ workspace_member as (
 ),
 {% endif %}
 
-{% if var('claude__using_workspace', True) %}
+{% if using_workspace %}
 workspace as (
 
     select *
@@ -93,6 +108,7 @@ cost_rollup as (
     {{ dbt_utils.group_by(n=2) }}
 ),
 
+{% if using_enterprise_user_activity %}
 -- Claude Code, chat, Cowork and web search activity per actor, same two windows.
 activity_rollup as (
 
@@ -111,8 +127,9 @@ activity_rollup as (
     from enterprise_user_activity
     {{ dbt_utils.group_by(n=2) }}
 ),
+{% endif %}
 
-{% if var('claude__using_workspace_member', True) %}
+{% if using_workspace_member %}
 -- Workspace membership for the workspace user matched above. A user can belong to more
 -- than one workspace, so this is rolled up to one row per user before it is joined onto the
 -- actor grain below, and never joins workspace_member directly to enterprise_user_actor.
@@ -131,7 +148,7 @@ workspace_rollup as (
     {{ dbt_utils.group_by(n=2) }}
 ),
 
-{% if var('claude__using_workspace', True) %}
+{% if using_workspace %}
 -- Split from workspace_rollup because Redshift does not allow a LISTAGG-family function
 -- alongside another DISTINCT aggregate (count(distinct workspace_id) above) in one query.
 workspace_names_rollup as (
@@ -155,6 +172,7 @@ final as (
     select
         enterprise_user_actor.source_relation,
         enterprise_user_actor.actor_user_id as user_id,
+        {% if using_users %}
         users.user_id as workspace_user_id,
         coalesce(enterprise_user_actor.email, users.email) as email,
         coalesce(enterprise_user_actor.name, users.name) as name,
@@ -163,11 +181,16 @@ final as (
         -- role information, present only for actors that also appear as workspace users
         users.role,
         users.added_at as joined_organization_at,
+        {% else %}
+        enterprise_user_actor.email as email,
+        enterprise_user_actor.name as name,
+        coalesce(enterprise_user_actor.is_deleted, false) as is_user_deleted,
+        {% endif %}
 
         -- workspace membership, present only for actors with a matching workspace user
-        {% if var('claude__using_workspace_member', True) -%}
+        {% if using_workspace_member -%}
         workspace_rollup.count_workspaces,
-        {% if var('claude__using_workspace', True) -%}
+        {% if using_workspace -%}
         workspace_names_rollup.workspace_names,
         {% endif -%}
         workspace_rollup.is_workspace_admin,
@@ -183,37 +206,43 @@ final as (
         cost_rollup.month_to_date_billed_days,
         cost_rollup.first_billed_date,
         cost_rollup.last_billed_date,
-        cost_rollup.lifetime_claude_list_cost - cost_rollup.lifetime_claude_cost as lifetime_claude_discount,
+        cost_rollup.lifetime_claude_list_cost - cost_rollup.lifetime_claude_cost as lifetime_claude_discount
 
         -- activity
-        {% for alias, column_name in activity_metrics -%}
-        activity_rollup.lifetime_{{ alias }},
-        activity_rollup.month_to_date_{{ alias }},
-        {% endfor -%}
-        activity_rollup.lifetime_active_days,
-        activity_rollup.month_to_date_active_days,
-        activity_rollup.first_active_date,
-        activity_rollup.last_active_date
+        {% if using_enterprise_user_activity -%}
+        {%- for alias, column_name in activity_metrics %}
+        , activity_rollup.lifetime_{{ alias }}
+        , activity_rollup.month_to_date_{{ alias }}
+        {%- endfor %}
+        , activity_rollup.lifetime_active_days
+        , activity_rollup.month_to_date_active_days
+        , activity_rollup.first_active_date
+        , activity_rollup.last_active_date
+        {%- endif %}
 
     from enterprise_user_actor
 
+    {% if using_users %}
     left join users
         on enterprise_user_actor.email = users.email
         and enterprise_user_actor.source_relation = users.source_relation
+    {% endif %}
 
     left join cost_rollup
         on enterprise_user_actor.actor_user_id = cost_rollup.actor_user_id
         and enterprise_user_actor.source_relation = cost_rollup.source_relation
 
+    {% if using_enterprise_user_activity %}
     left join activity_rollup
         on enterprise_user_actor.actor_user_id = activity_rollup.actor_user_id
         and enterprise_user_actor.source_relation = activity_rollup.source_relation
+    {% endif %}
 
-    {% if var('claude__using_workspace_member', True) -%}
+    {% if using_workspace_member -%}
     left join workspace_rollup
         on enterprise_user_actor.actor_user_id = workspace_rollup.user_id
         and enterprise_user_actor.source_relation = workspace_rollup.source_relation
-    {% if var('claude__using_workspace', True) -%}
+    {% if using_workspace -%}
     left join workspace_names_rollup
         on enterprise_user_actor.actor_user_id = workspace_names_rollup.user_id
         and enterprise_user_actor.source_relation = workspace_names_rollup.source_relation

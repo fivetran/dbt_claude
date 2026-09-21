@@ -1,3 +1,4 @@
+{{ config(enabled=var('claude__using_enterprise_user_activity', True)) }}
 
 with base as (
 

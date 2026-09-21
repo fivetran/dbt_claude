@@ -35,6 +35,14 @@ test_scenarios:
     vars:
       claude__using_organization: false
       claude__using_workspace: false
+      claude__using_users: false
+    include_incremental: false
+
+  - name: "Optional enrichment tables disabled"
+    vars:
+      claude__using_enterprise_user_actor: false
+      claude__using_enterprise_user_activity: false
+      claude__using_claude_code_usage_report_model_breakdown: false
     include_incremental: false
 
   - name: "MDLS"

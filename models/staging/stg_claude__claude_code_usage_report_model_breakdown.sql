@@ -1,3 +1,4 @@
+{{ config(enabled=var('claude__using_claude_code_usage_report_model_breakdown', True)) }}
 
 with base as (
 
