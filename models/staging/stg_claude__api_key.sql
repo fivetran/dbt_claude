@@ -29,7 +29,7 @@ final as (
         workspace_id,
         name,
         partial_key_hint,
-        status,
+        lower(status) as status,
         created_at,
         created_by_id,
         created_by_type,

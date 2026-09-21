@@ -204,6 +204,16 @@ models:
         description: >
           Whether the user holds the workspace_developer or workspace_restricted_developer role
           in at least one workspace. Null for actors with no matching workspace user.
+      - name: count_active_api_keys
+        description: Number of API keys this user created with an "active" status.
+      - name: count_archived_api_keys
+        description: Number of API keys this user created with an "archived" status.
+      - name: count_expired_api_keys
+        description: Number of API keys this user created with an "expired" status.
+      - name: count_inactive_api_keys
+        description: Number of API keys this user created with an "inactive" status.
+      - name: count_created_api_keys
+        description: Total number of API keys this user created, across all statuses.
       - name: lifetime_claude_cost
         description: Cost after discounts and before credits, in fractional cents (minor units). All time.
       - name: month_to_date_claude_cost

@@ -4,6 +4,9 @@
 {% set using_users = var('claude__using_users', True) %}
 {% set using_workspace_member = var('claude__using_workspace_member', True) %}
 {% set using_enterprise_user_activity = var('claude__using_enterprise_user_activity', True) %}
+{% set using_api_key = var('claude__using_api_key', True) %}
+
+{% set api_key_statuses = ['active', 'archived', 'expired', 'inactive'] %}
 
 {%- set month_start = 'cast(' ~ dbt.date_trunc('month', 'current_date') ~ ' as date)' -%}
 
@@ -88,6 +91,14 @@ workspace as (
 ),
 {% endif %}
 
+{% if using_api_key %}
+api_key as (
+
+    select *
+    from {{ ref('int_claude__api_key') }}
+),
+{% endif %}
+
 -- Cost and tokens per actor, all time and for the current calendar month. Both windows are
 -- rolled up in one pass with conditional aggregation rather than joining two summaries.
 cost_rollup as (
@@ -167,6 +178,25 @@ workspace_names_rollup as (
 {% endif %}
 {% endif %}
 
+{% if using_api_key %}
+-- API keys created by this user, rolled up to one row per creator and pivoted by status.
+api_key_rollup as (
+
+    select
+        source_relation,
+        created_by_id,
+        {% for status in api_key_statuses -%}
+        count(case when status = '{{ status }}' then 1 end) as count_{{ status }}_api_keys,
+        {% endfor -%}
+        count(*) as count_api_keys
+
+    from api_key
+    where created_by_id is not null
+        and not coalesce(is_deleted, false)
+    group by 1,2
+),
+{% endif %}
+
 final as (
 
     select
@@ -195,6 +225,14 @@ final as (
         {% endif -%}
         workspace_rollup.is_workspace_admin,
         workspace_rollup.is_workspace_developer,
+        {% endif -%}
+
+        -- API keys created by this user, by status
+        {% if using_api_key -%}
+            {% for status in api_key_statuses -%}
+            api_key_rollup.count_{{ status }}_api_keys,
+            {% endfor -%}
+        api_key_rollup.count_api_keys as count_created_api_keys,
         {% endif -%}
 
         -- cost and usage
@@ -248,6 +286,12 @@ final as (
         and enterprise_user_actor.source_relation = workspace_names_rollup.source_relation
     {%- endif %}
     {%- endif %}
+
+    {% if using_api_key %}
+    left join api_key_rollup
+        on enterprise_user_actor.actor_user_id = api_key_rollup.created_by_id
+        and enterprise_user_actor.source_relation = api_key_rollup.source_relation
+    {% endif %}
 )
 
 select *
