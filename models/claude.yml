@@ -357,9 +357,6 @@ models:
       - name: count_model_families_used
         description: >
           Distinct model families used ("opus", "sonnet", "fable", "haiku"). Null when no breakdown is reported.
-      - name: count_model_variants_used
-        description: >
-          Distinct model versions used (e.g. "4.5", "4.6", "5"). Null when no breakdown is reported.
       - name: tokens_input
         description: Input tokens consumed, summed across models. Null when no breakdown is reported.
       - name: tokens_output
