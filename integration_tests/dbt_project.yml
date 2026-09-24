@@ -254,3 +254,7 @@ seeds:
         type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
         _fivetran_deleted: boolean
         _fivetran_synced: timestamp
+
+flags:
+  send_anonymous_usage_stats: False
+  use_colors: True
