@@ -47,7 +47,7 @@ breakdown_rollup as (
         count(distinct model) as count_models_used,
         count(distinct model_family) as count_model_families_used,
         max(estimated_cost_currency) as estimated_cost_currency,
-        sum(estimated_cost_amount) as estimated_cost, -- fractional cents
+        sum(estimated_cost_amount) as estimated_cost, -- major currency units (e.g. dollars for USD)
         sum(tokens_input) as tokens_input,
         sum(tokens_output) as tokens_output,
         sum(tokens_cache_creation) as tokens_cache_creation,

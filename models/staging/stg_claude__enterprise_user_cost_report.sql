@@ -30,8 +30,8 @@ final as (
         cast(starting_date as date) as starting_date,
         cast(ending_date as date) as ending_date,
         product,
-        coalesce(cast(amount as {{ dbt.type_float() }}), 0) as amount, -- cents
-        coalesce(cast(list_amount as {{ dbt.type_float() }}), 0) as list_amount, -- cents
+        coalesce(cast(amount as {{ dbt.type_float() }}), 0) / 100 as amount, -- converted from fractional cents to major currency units
+        coalesce(cast(list_amount as {{ dbt.type_float() }}), 0) / 100 as list_amount, -- converted from fractional cents to major currency units
         currency,
         lower(cost_type) as cost_type,
         lower(token_type) as token_type,
