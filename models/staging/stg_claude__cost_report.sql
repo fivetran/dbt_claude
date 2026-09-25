@@ -1,3 +1,4 @@
+{{ config(enabled=var('claude_using_cost_report', True)) }}
 
 with base as (
 
@@ -30,7 +31,7 @@ final as (
         cast(ending_at as {{ dbt.type_timestamp() }}) as ending_at,
         cast(starting_at as date) as starting_date,
         cast(ending_at as date) as ending_date,
-        coalesce(cast(amount as {{ dbt.type_float() }}), 0) as amount, -- in cents
+        {{ claude.claude_convert_cost('coalesce(cast(amount as ' ~ dbt.type_float() ~ '), 0)', alias='amount') }}, -- converted from cents to major currency units
         currency, -- always USD as of Sep 2026
         lower(cost_type) as cost_type,
         description,

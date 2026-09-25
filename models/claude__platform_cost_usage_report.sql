@@ -1,3 +1,5 @@
+{{ config(enabled=var('claude_using_cost_report', True) and var('claude_using_message_usage_report', True) and var('claude_using_api_key', True)) }}
+
 {% set token_columns = [
     ('uncached_input_token', 'input'),
     ('cache_read_input_token', 'cache_read'),
@@ -6,7 +8,8 @@
     ('output_token', 'output')
 ] %}
 
-{% set using_workspace = var('claude__using_workspace', True) %}
+{% set using_workspace = var('claude_using_workspace', True) %}
+{% set using_users = var('claude_using_users', True) %}
 
 with cost_report as (
 
@@ -55,11 +58,15 @@ usage as (
         usage_unpivoted.source_relation,
         usage_unpivoted.date_day,
         coalesce(usage_unpivoted.workspace_id, api_key.workspace_id) as workspace_id,
-        coalesce(usage_unpivoted.workspace_id, api_key.workspace_id, '__org__') as workspace_key,
+        coalesce(usage_unpivoted.workspace_id, api_key.workspace_id, '__org__') as workspace_key, -- temporary
         usage_unpivoted.api_key_id,
         api_key.name as api_key_name,
         api_key.is_deleted as is_api_key_deleted,
+        {% if using_users -%}
         api_key.is_creator_deleted,
+        api_key.created_by_name,
+        api_key.created_by_email,
+        {% endif -%}
         {% if using_workspace -%}
         api_key.workspace_name,
         {% endif -%}
@@ -72,7 +79,7 @@ usage as (
         on usage_unpivoted.api_key_id = api_key.api_key_id
         and usage_unpivoted.source_relation = api_key.source_relation
 
-    {{ dbt_utils.group_by(n=11 if using_workspace else 10) }}
+    {{ dbt_utils.group_by(n=9 + (3 if using_users else 0) + (1 if using_workspace else 0)) }}
 ),
 
 -- each api key's share of the workspace tokens of the same type that date_day
@@ -99,7 +106,11 @@ web_search_usage as (
         message_usage_report.api_key_id,
         api_key.name as api_key_name,
         api_key.is_deleted as is_api_key_deleted,
+        {% if using_users -%}
         api_key.is_creator_deleted,
+        api_key.created_by_name,
+        api_key.created_by_email,
+        {% endif -%}
         {% if using_workspace -%}
         api_key.workspace_name,
         {% endif -%}
@@ -111,7 +122,7 @@ web_search_usage as (
         and message_usage_report.source_relation = api_key.source_relation
 
     where message_usage_report.server_tool_use_web_search_request > 0
-    {{ dbt_utils.group_by(n=9 if using_workspace else 8) }}
+    {{ dbt_utils.group_by(n=7 + (3 if using_users else 0) + (1 if using_workspace else 0)) }}
 ),
 
 -- each api key's share of the workspace's web search requests that day
@@ -158,7 +169,11 @@ allocated_by_token_unit_type as (
         share_by_token_unit_type.api_key_id,
         share_by_token_unit_type.api_key_name,
         share_by_token_unit_type.is_api_key_deleted,
+        {% if using_users -%}
         share_by_token_unit_type.is_creator_deleted,
+        share_by_token_unit_type.created_by_name,
+        share_by_token_unit_type.created_by_email,
+        {% endif -%}
         cost.model,
         cost.cost_type,
         cost.token_unit_type,
@@ -192,7 +207,11 @@ allocated_web_search as (
         share_web_search.api_key_id,
         share_web_search.api_key_name,
         share_web_search.is_api_key_deleted,
+        {% if using_users -%}
         share_web_search.is_creator_deleted,
+        share_web_search.created_by_name,
+        share_web_search.created_by_email,
+        {% endif -%}
         cost.model,
         cost.cost_type,
         cost.token_unit_type,
@@ -247,7 +266,11 @@ unallocated as (
         cast(null as {{ dbt.type_string() }}) as api_key_id,
         cast(null as {{ dbt.type_string() }}) as api_key_name,
         cast(null as {{ dbt.type_boolean() }}) as is_api_key_deleted,
+        {% if using_users -%}
         cast(null as {{ dbt.type_boolean() }}) as is_creator_deleted,
+        cast(null as {{ dbt.type_string() }}) as created_by_name,
+        cast(null as {{ dbt.type_string() }}) as created_by_email,
+        {% endif -%}
         cost.model,
         cost.cost_type,
         cost.token_unit_type,
@@ -291,7 +314,11 @@ final as (
         api_key_id,
         api_key_name,
         is_api_key_deleted,
+        {% if using_users -%}
         is_creator_deleted,
+        created_by_name,
+        created_by_email,
+        {% endif -%}
         model,
         {{ claude.claude_model_family('model') }} as model_family,
         {{ claude.claude_model_variant('model') }} as model_variant,

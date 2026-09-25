@@ -1,3 +1,5 @@
+{{ config(enabled=var('claude_using_enterprise_user_cost_report', True)) }}
+
 {{
     fivetran_utils.union_connections(
         connection_dictionary='claude_sources',

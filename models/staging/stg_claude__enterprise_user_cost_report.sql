@@ -1,3 +1,4 @@
+{{ config(enabled=var('claude_using_enterprise_user_cost_report', True)) }}
 
 with base as (
 
@@ -29,8 +30,8 @@ final as (
         cast(starting_date as date) as starting_date,
         cast(ending_date as date) as ending_date,
         product,
-        coalesce(cast(amount as {{ dbt.type_float() }}), 0) as amount, -- cents
-        coalesce(cast(list_amount as {{ dbt.type_float() }}), 0) as list_amount, -- cents
+        {{ claude.claude_convert_cost('coalesce(cast(amount as ' ~ dbt.type_float() ~ '), 0)', alias='amount') }}, -- converted from fractional cents to major currency units
+        {{ claude.claude_convert_cost('coalesce(cast(list_amount as ' ~ dbt.type_float() ~ '), 0)', alias='list_amount') }}, -- converted from fractional cents to major currency units
         currency,
         lower(cost_type) as cost_type,
         lower(token_type) as token_type,

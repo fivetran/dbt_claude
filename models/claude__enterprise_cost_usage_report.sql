@@ -1,3 +1,5 @@
+{{ config(enabled=var('claude_using_enterprise_user_cost_report', True) and var('claude_using_enterprise_user_usage_report', True)) }}
+
 {% set token_columns = [
     ('uncached_input_token', 'input'),
     ('cache_read_input_token', 'cache_read'),
@@ -18,13 +20,15 @@ enterprise_user_usage_report as (
     from {{ ref('stg_claude__enterprise_user_usage_report') }}
 ),
 
+{% if var('claude_using_enterprise_user_actor', True) %}
 enterprise_user_actor as (
 
     select *
     from {{ ref('stg_claude__enterprise_user_actor') }}
 ),
+{% endif %}
 
-{% if var('claude__using_organization', True) %}
+{% if var('claude_using_organization', True) %}
 organization as (
 
     select *
@@ -173,13 +177,15 @@ final as (
         combined.source_relation,
         combined.date_day,
         combined.organization_id,
-        {% if var('claude__using_organization', True) %}
+        {% if var('claude_using_organization', True) %}
         organization.name as organization_name,
         {% endif %}
         combined.actor_user_id,
+        {% if var('claude_using_enterprise_user_actor', True) %}
         enterprise_user_actor.email as actor_email,
         enterprise_user_actor.name as actor_name,
         enterprise_user_actor.is_deleted as is_actor_deleted,
+        {% endif %}
         combined.product,
         combined.model,
         {{ claude.claude_model_family('combined.model') }} as model_family,
@@ -196,11 +202,13 @@ final as (
         combined.data_refreshed_at
 
     from combined
+    {% if var('claude_using_enterprise_user_actor', True) %}
     left join enterprise_user_actor
         on combined.actor_user_id = enterprise_user_actor.actor_user_id
         and combined.source_relation = enterprise_user_actor.source_relation
+    {% endif %}
 
-    {% if var('claude__using_organization', True) %}
+    {% if var('claude_using_organization', True) %}
     left join organization
         on combined.organization_id = organization.organization_id
         and combined.source_relation = organization.source_relation

@@ -24,7 +24,7 @@ This package enables you to understand Claude API cost and usage, Claude Code de
 Final output tables are generated in the following target schema:
 
 ```
-<your_database>.<connector/schema_name>_claude
+<your_database>.<target_schema>_claude_reports
 ```
 
 ### Final output tables
@@ -106,11 +106,20 @@ To disable the corresponding functionality in the package, you must set the rele
 
 ```yml
 vars:
-    claude__using_organization: false # Disable if you do not have ORGANIZATION synced. Removes the organization_name column and the join to it from the claude__code_report and claude__enterprise_cost_usage_report transform models.
-    claude__using_workspace: false # Disable if you do not have WORKSPACE synced. Removes the workspace_name column and the join to it from int_claude__api_key, claude__platform_cost_usage_report, and claude__user_summary.
-    claude__using_workspace_member: false # Disable if you do not have WORKSPACE_MEMBER synced. Removes the count_workspaces, workspace_names, is_workspace_admin, and is_workspace_developer columns from claude__user_summary.
+    claude_using_cost_report: false # Disable if you do not have COST_REPORT synced.
+    claude_using_enterprise_user_cost_report: false # Disable if you do not have ENTERPRISE_USER_COST_REPORT synced.
+    claude_using_message_usage_report: false # Disable if you do not have MESSAGE_USAGE_REPORT synced.
+    claude_using_enterprise_user_usage_report: false # Disable if you do not have ENTERPRISE_USER_USAGE_REPORT synced.
+    claude_using_claude_code_usage_report: false # Disable if you do not have CLAUDE_CODE_USAGE_REPORT synced.
+    claude_using_claude_code_usage_report_model_breakdown: false # Disable if you do not have CLAUDE_CODE_USAGE_REPORT_MODEL_BREAKDOWN synced.
+    claude_using_users: false # Disable if you do not have USERS synced.
+    claude_using_enterprise_user_actor: false # Disable if you do not have ENTERPRISE_USER_ACTOR synced.
+    claude_using_api_key: false # Disable if you do not have API_KEY synced.
+    claude_using_enterprise_user_activity: false # Disable if you do not have ENTERPRISE_USER_ACTIVITY synced.
+    claude_using_organization: false # Disable if you do not have ORGANIZATION synced. Removes the organization_name column and the join to it from the claude__code_report and claude__enterprise_cost_usage_report transform models.
+    claude_using_workspace: false # Disable if you do not have WORKSPACE synced. Removes the workspace_name column and the join to it from int_claude__api_key, claude__platform_cost_usage_report, and claude__user_summary.
+    claude_using_workspace_member: false # Disable if you do not have WORKSPACE_MEMBER synced. Removes the count_workspaces, workspace_names, is_workspace_admin, and is_workspace_developer columns from claude__user_summary.
 ```
-*Note: This package only integrates the above variables. If you'd like to disable other models, please create an [issue](https://github.com/fivetran/dbt_claude/issues) specifying which ones.*
 
 ### (Optional) Additional configurations
 <details open><summary>Expand/Collapse details</summary>
@@ -133,8 +142,20 @@ vars:
 
 > Please create an [issue](https://github.com/fivetran/dbt_claude/issues) if you'd like to see passthrough column support for other tables in the Claude schema.
 
+#### Enabling Cent to Dollar Conversion
+Cost-based fields, such as `amount` and `estimated_cost_amount`, are reported by the Claude API in the smallest denomination of the currency (cents, or fractional cents on some endpoints, for USD). By default, this package divides these fields by 100 in staging so every downstream cost column is in major currency units (dollars for USD) instead.
+
+If you'd rather keep these fields in their raw, undivided form, set `claude__convert_cost` to `false` in your `dbt_project.yml`:
+
+```yml
+vars:
+    claude__convert_cost: false # default is true
+```
+
+Claude cost is currently always reported in USD, so this conversion is safe and enabled by default. If Claude later reports cost in a currency with no minor unit, this variable lets you turn the conversion off without editing the package.
+
 #### Changing the Build Schema
-By default this package will build the Claude staging models within a schema titled (<target_schema> + `_stg_claude`), the intermediate models within a schema titled (<target_schema> + `_int_claude`), and the final transform models within a schema titled (<target_schema> + `_claude`) in your target database. If this is not where you would like your Claude staging, intermediate, and final models to be written to, add the following configuration to your `dbt_project.yml` file:
+By default this package will build the Claude staging and intermediate models within a schema titled (<target_schema> + `_stg_claude`) and the final transform models within a schema titled (<target_schema> + `_claude_reports`) in your target database. If this is not where you would like your Claude staging, intermediate, and final models to be written to, add the following configuration to your `dbt_project.yml` file:
 
 ```yml
 models:

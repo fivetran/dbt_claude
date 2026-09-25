@@ -22,19 +22,28 @@ test_scenarios:
     vars: {}
     include_incremental: false
 
-  - name: "Enterprise activity passthrough columns"
+  - name: "Enterprise activity passthrough columns and no converting"
     vars:
       claude__enterprise_user_activity_pass_through_metrics:
         - name: "chat_metrics_shared_conversations_viewed_count"
           alias: "shared_conversations_viewed_count"
         - name: "chat_metrics_distinct_skills_used_count"
-      claude__using_workspace_member: false
+      claude_using_workspace_member: false
+      claude__convert_cost: false
     include_incremental: false
 
   - name: "Optional tables disabled"
     vars:
-      claude__using_organization: false
-      claude__using_workspace: false
+      claude_using_organization: false
+      claude_using_workspace: false
+      claude_using_users: false
+    include_incremental: false
+
+  - name: "Optional enrichment tables disabled"
+    vars:
+      claude_using_enterprise_user_actor: false
+      claude_using_enterprise_user_activity: false
+      claude_using_claude_code_usage_report_model_breakdown: false
     include_incremental: false
 
   - name: "MDLS"

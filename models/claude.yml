@@ -64,9 +64,9 @@ models:
           share of every token the workspace used that day. Sums to 1 within each group.
       - name: claude_cost
         description: >
-          Cost attributed to this row, in fractional cents (minor units), matching the unit
-          `stg_claude__cost_report.amount` is reported in. Equals the workspace cost for the
-          slice multiplied by `token_share`, except on unallocated rows where it is the
+          Cost attributed to this row, in major currency units (e.g. dollars for USD), matching
+          the unit `stg_claude__cost_report.amount` is reported in. Equals the workspace cost
+          for the slice multiplied by `token_share`, except on unallocated rows where it is the
           remainder that no API key could be attributed.
       - name: currency
         description: Currency code for the cost amount. Currently always "USD".
@@ -144,11 +144,11 @@ models:
           type rows to avoid double-counting across the unpivoted grain.
       - name: claude_cost
         description: >
-          Cost after discounts and before credits, in fractional cents (minor units),
-          matching the unit `stg_claude__enterprise_user_cost_report.amount` is reported in.
-          Null on rows carrying usage that has no matching cost.
+          Cost after discounts and before credits, in major currency units (e.g. dollars for
+          USD), matching the unit `stg_claude__enterprise_user_cost_report.amount` is reported
+          in. Null on rows carrying usage that has no matching cost.
       - name: claude_list_cost
-        description: List-price cost before discounts, in fractional cents (minor units).
+        description: List-price cost before discounts, in major currency units (e.g. dollars for USD).
       - name: claude_discount
         description: Difference between list cost and actual cost.
       - name: currency
@@ -204,14 +204,24 @@ models:
         description: >
           Whether the user holds the workspace_developer or workspace_restricted_developer role
           in at least one workspace. Null for actors with no matching workspace user.
+      - name: count_active_api_keys
+        description: Number of API keys this user created with an "active" status.
+      - name: count_archived_api_keys
+        description: Number of API keys this user created with an "archived" status.
+      - name: count_expired_api_keys
+        description: Number of API keys this user created with an "expired" status.
+      - name: count_inactive_api_keys
+        description: Number of API keys this user created with an "inactive" status.
+      - name: count_created_api_keys
+        description: Total number of API keys this user created, across all statuses.
       - name: lifetime_claude_cost
-        description: Cost after discounts and before credits, in fractional cents (minor units). All time.
+        description: Cost after discounts and before credits, in major currency units (e.g. dollars for USD). All time.
       - name: month_to_date_claude_cost
-        description: Cost after discounts and before credits, in fractional cents (minor units). Current calendar month only.
+        description: Cost after discounts and before credits, in major currency units (e.g. dollars for USD). Current calendar month only.
       - name: lifetime_claude_list_cost
-        description: List-price cost before discounts, in fractional cents (minor units). All time.
+        description: List-price cost before discounts, in major currency units (e.g. dollars for USD). All time.
       - name: month_to_date_claude_list_cost
-        description: List-price cost before discounts, in fractional cents (minor units). Current calendar month only.
+        description: List-price cost before discounts, in major currency units (e.g. dollars for USD). Current calendar month only.
       - name: lifetime_tokens
         description: Tokens consumed across all token types. All time.
       - name: month_to_date_tokens
@@ -347,9 +357,6 @@ models:
       - name: count_model_families_used
         description: >
           Distinct model families used ("opus", "sonnet", "fable", "haiku"). Null when no breakdown is reported.
-      - name: count_model_variants_used
-        description: >
-          Distinct model versions used (e.g. "4.5", "4.6", "5"). Null when no breakdown is reported.
       - name: tokens_input
         description: Input tokens consumed, summed across models. Null when no breakdown is reported.
       - name: tokens_output
@@ -362,7 +369,7 @@ models:
         description: Sum of all four token types. Zero rather than null when no breakdown is reported.
       - name: estimated_cost
         description: >
-          Estimated Claude Code cost in fractional cents (minor units), summed across models.
-          Null when no breakdown is reported.
+          Estimated Claude Code cost in major currency units (e.g. dollars for USD), summed
+          across models. Null when no breakdown is reported.
       - name: estimated_cost_currency
         description: Currency code for the estimated cost.

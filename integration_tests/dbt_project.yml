@@ -5,6 +5,16 @@ profile: 'integration_tests'
 
 vars:
   claude_schema: claude_integration_tests
+  # claude_using_cost_report: false
+  # claude_using_enterprise_user_cost_report: false
+  # claude_using_message_usage_report: false
+  # claude_using_enterprise_user_usage_report: false
+  # claude_using_claude_code_usage_report: false
+  # claude_using_claude_code_usage_report_model_breakdown: false
+  # claude_using_users: false
+  # claude_using_enterprise_user_actor: false
+  # claude_using_api_key: false
+  # claude_using_enterprise_user_activity: false
 
 dispatch:
   - macro_namespace: dbt_utils
@@ -254,3 +264,7 @@ seeds:
         type: "{{ 'string' if target.type in ('bigquery','spark','databricks') else 'varchar' }}"
         _fivetran_deleted: boolean
         _fivetran_synced: timestamp
+
+flags:
+  send_anonymous_usage_stats: False
+  use_colors: True
