@@ -16,7 +16,9 @@ Web search and session-usage cost don't carry a model or token type, so unlike t
 
 ## Cost Fields Are Converted to Major Currency Units in Staging
 
-The Claude API reports cost in minor currency units (cents, or fractional cents on the Enterprise endpoints, e.g. `stg_claude__cost_report.amount`, `stg_claude__enterprise_user_cost_report.amount`/`list_amount`, and `stg_claude__claude_code_usage_report_model_breakdown.estimated_cost_amount`). Staging divides each of these by 100 so every downstream cost column — `claude_cost`, `claude_list_cost`, `estimated_cost`, and their rollups — is expressed in major currency units (e.g. dollars for USD) instead of cents. We made this conversion once in staging rather than in each end model so every consumer gets a consistent, ready-to-use unit without needing to know or re-derive the source's minor-unit convention.
+The Claude API reports cost in minor currency units (cents, or fractional cents on the Enterprise endpoints, e.g. `stg_claude__cost_report.amount`, `stg_claude__enterprise_user_cost_report.amount`/`list_amount`, and `stg_claude__claude_code_usage_report_model_breakdown.estimated_cost_amount`). Staging divides each of these by 100, via the `claude_convert_cost` macro, so every downstream cost column — `claude_cost`, `claude_list_cost`, `estimated_cost`, and their rollups — is expressed in major currency units (e.g. dollars for USD) instead of cents. We made this conversion once in staging rather than in each end model so every consumer gets a consistent, ready-to-use unit without needing to know or re-derive the source's minor-unit convention.
+
+The conversion is on by default, since Claude cost is currently always reported in USD, but it can be turned off with `claude__convert_cost: false` (see the README's "Enabling Cent to Dollar Conversion" section) in case Claude ever reports cost in a currency with no minor unit, or you otherwise want the raw, undivided values.
 
 ## Some Soft-Deleted Records Are Kept, Not Filtered
 

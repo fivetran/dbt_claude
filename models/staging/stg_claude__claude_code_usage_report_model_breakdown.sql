@@ -32,7 +32,7 @@ final as (
         coalesce(tokens_cache_creation, 0) as tokens_cache_creation,
         coalesce(tokens_cache_read, 0) as tokens_cache_read,
         estimated_cost_currency,
-        coalesce(cast(estimated_cost_amount as {{ dbt.type_float() }}), 0) / 100 as estimated_cost_amount, -- converted from cents to major currency units
+        {{ claude.claude_convert_cost('coalesce(cast(estimated_cost_amount as ' ~ dbt.type_float() ~ '), 0)', alias='estimated_cost_amount') }}, -- converted from cents to major currency units
         _fivetran_synced
 
     from fields
