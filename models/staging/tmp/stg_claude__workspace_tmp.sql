@@ -1,4 +1,4 @@
-{{ config(enabled=var('claude__using_workspace', True)) }}
+{{ config(enabled=var('claude_using_workspace', True)) }}
 
 {{
     fivetran_utils.union_connections(

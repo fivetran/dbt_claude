@@ -1,4 +1,4 @@
-{{ config(enabled=var('claude__using_enterprise_user_actor', True)) }}
+{{ config(enabled=var('claude_using_enterprise_user_actor', True)) }}
 
 {{
     fivetran_utils.union_connections(

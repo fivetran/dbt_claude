@@ -1,4 +1,4 @@
-{{ config(enabled=var('claude__using_workspace_member', True)) }}
+{{ config(enabled=var('claude_using_workspace_member', True)) }}
 
 with base as (
 

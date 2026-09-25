@@ -1,4 +1,4 @@
-{{ config(enabled=var('claude__using_cost_report', True) and var('claude__using_message_usage_report', True) and var('claude__using_api_key', True)) }}
+{{ config(enabled=var('claude_using_cost_report', True) and var('claude_using_message_usage_report', True) and var('claude_using_api_key', True)) }}
 
 {% set token_columns = [
     ('uncached_input_token', 'input'),
@@ -8,8 +8,8 @@
     ('output_token', 'output')
 ] %}
 
-{% set using_workspace = var('claude__using_workspace', True) %}
-{% set using_users = var('claude__using_users', True) %}
+{% set using_workspace = var('claude_using_workspace', True) %}
+{% set using_users = var('claude_using_users', True) %}
 
 with cost_report as (
 

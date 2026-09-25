@@ -28,21 +28,21 @@ test_scenarios:
         - name: "chat_metrics_shared_conversations_viewed_count"
           alias: "shared_conversations_viewed_count"
         - name: "chat_metrics_distinct_skills_used_count"
-      claude__using_workspace_member: false
+      claude_using_workspace_member: false
     include_incremental: false
 
   - name: "Optional tables disabled"
     vars:
-      claude__using_organization: false
-      claude__using_workspace: false
-      claude__using_users: false
+      claude_using_organization: false
+      claude_using_workspace: false
+      claude_using_users: false
     include_incremental: false
 
   - name: "Optional enrichment tables disabled"
     vars:
-      claude__using_enterprise_user_actor: false
-      claude__using_enterprise_user_activity: false
-      claude__using_claude_code_usage_report_model_breakdown: false
+      claude_using_enterprise_user_actor: false
+      claude_using_enterprise_user_activity: false
+      claude_using_claude_code_usage_report_model_breakdown: false
     include_incremental: false
 
   - name: "MDLS"

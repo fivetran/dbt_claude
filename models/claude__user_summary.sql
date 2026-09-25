@@ -1,10 +1,10 @@
-{{ config(enabled=var('claude__using_enterprise_user_actor', True) and var('claude__using_enterprise_user_cost_report', True) and var('claude__using_enterprise_user_usage_report', True)) }}
+{{ config(enabled=var('claude_using_enterprise_user_actor', True) and var('claude_using_enterprise_user_cost_report', True) and var('claude_using_enterprise_user_usage_report', True)) }}
 
-{% set using_workspace = var('claude__using_workspace', True) %}
-{% set using_users = var('claude__using_users', True) %}
-{% set using_workspace_member = var('claude__using_workspace_member', True) %}
-{% set using_enterprise_user_activity = var('claude__using_enterprise_user_activity', True) %}
-{% set using_api_key = var('claude__using_api_key', True) %}
+{% set using_workspace = var('claude_using_workspace', True) %}
+{% set using_users = var('claude_using_users', True) %}
+{% set using_workspace_member = var('claude_using_workspace_member', True) %}
+{% set using_enterprise_user_activity = var('claude_using_enterprise_user_activity', True) %}
+{% set using_api_key = var('claude_using_api_key', True) %}
 
 {% set api_key_statuses = ['active', 'archived', 'expired', 'inactive'] %}
 

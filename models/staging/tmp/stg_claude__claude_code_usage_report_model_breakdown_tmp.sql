@@ -1,4 +1,4 @@
-{{ config(enabled=var('claude__using_claude_code_usage_report_model_breakdown', True)) }}
+{{ config(enabled=var('claude_using_claude_code_usage_report_model_breakdown', True)) }}
 
 {{
     fivetran_utils.union_connections(

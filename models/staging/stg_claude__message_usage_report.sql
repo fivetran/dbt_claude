@@ -1,4 +1,4 @@
-{{ config(enabled=var('claude__using_message_usage_report', True)) }}
+{{ config(enabled=var('claude_using_message_usage_report', True)) }}
 
 with base as (
 

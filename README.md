@@ -106,19 +106,19 @@ To disable the corresponding functionality in the package, you must set the rele
 
 ```yml
 vars:
-    claude__using_cost_report: false # Disable if you do not have COST_REPORT synced.
-    claude__using_enterprise_user_cost_report: false # Disable if you do not have ENTERPRISE_USER_COST_REPORT synced.
-    claude__using_message_usage_report: false # Disable if you do not have MESSAGE_USAGE_REPORT synced.
-    claude__using_enterprise_user_usage_report: false # Disable if you do not have ENTERPRISE_USER_USAGE_REPORT synced.
-    claude__using_claude_code_usage_report: false # Disable if you do not have CLAUDE_CODE_USAGE_REPORT synced.
-    claude__using_claude_code_usage_report_model_breakdown: false # Disable if you do not have CLAUDE_CODE_USAGE_REPORT_MODEL_BREAKDOWN synced.
-    claude__using_users: false # Disable if you do not have USERS synced.
-    claude__using_enterprise_user_actor: false # Disable if you do not have ENTERPRISE_USER_ACTOR synced.
-    claude__using_api_key: false # Disable if you do not have API_KEY synced.
-    claude__using_enterprise_user_activity: false # Disable if you do not have ENTERPRISE_USER_ACTIVITY synced.
-    claude__using_organization: false # Disable if you do not have ORGANIZATION synced. Removes the organization_name column and the join to it from the claude__code_report and claude__enterprise_cost_usage_report transform models.
-    claude__using_workspace: false # Disable if you do not have WORKSPACE synced. Removes the workspace_name column and the join to it from int_claude__api_key, claude__platform_cost_usage_report, and claude__user_summary.
-    claude__using_workspace_member: false # Disable if you do not have WORKSPACE_MEMBER synced. Removes the count_workspaces, workspace_names, is_workspace_admin, and is_workspace_developer columns from claude__user_summary.
+    claude_using_cost_report: false # Disable if you do not have COST_REPORT synced.
+    claude_using_enterprise_user_cost_report: false # Disable if you do not have ENTERPRISE_USER_COST_REPORT synced.
+    claude_using_message_usage_report: false # Disable if you do not have MESSAGE_USAGE_REPORT synced.
+    claude_using_enterprise_user_usage_report: false # Disable if you do not have ENTERPRISE_USER_USAGE_REPORT synced.
+    claude_using_claude_code_usage_report: false # Disable if you do not have CLAUDE_CODE_USAGE_REPORT synced.
+    claude_using_claude_code_usage_report_model_breakdown: false # Disable if you do not have CLAUDE_CODE_USAGE_REPORT_MODEL_BREAKDOWN synced.
+    claude_using_users: false # Disable if you do not have USERS synced.
+    claude_using_enterprise_user_actor: false # Disable if you do not have ENTERPRISE_USER_ACTOR synced.
+    claude_using_api_key: false # Disable if you do not have API_KEY synced.
+    claude_using_enterprise_user_activity: false # Disable if you do not have ENTERPRISE_USER_ACTIVITY synced.
+    claude_using_organization: false # Disable if you do not have ORGANIZATION synced. Removes the organization_name column and the join to it from the claude__code_report and claude__enterprise_cost_usage_report transform models.
+    claude_using_workspace: false # Disable if you do not have WORKSPACE synced. Removes the workspace_name column and the join to it from int_claude__api_key, claude__platform_cost_usage_report, and claude__user_summary.
+    claude_using_workspace_member: false # Disable if you do not have WORKSPACE_MEMBER synced. Removes the count_workspaces, workspace_names, is_workspace_admin, and is_workspace_developer columns from claude__user_summary.
 ```
 
 ### (Optional) Additional configurations

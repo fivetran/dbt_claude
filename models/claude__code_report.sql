@@ -1,8 +1,8 @@
-{{ config(enabled=var('claude__using_claude_code_usage_report', True)) }}
+{{ config(enabled=var('claude_using_claude_code_usage_report', True)) }}
 
-{% set using_users = var('claude__using_users', True) %}
-{% set using_organization = var('claude__using_organization', True) %}
-{% set using_claude_code_usage_report_model_breakdown = var('claude__using_claude_code_usage_report_model_breakdown', True) %}
+{% set using_users = var('claude_using_users', True) %}
+{% set using_organization = var('claude_using_organization', True) %}
+{% set using_claude_code_usage_report_model_breakdown = var('claude_using_claude_code_usage_report_model_breakdown', True) %}
 
 with claude_code_usage_report as (
 

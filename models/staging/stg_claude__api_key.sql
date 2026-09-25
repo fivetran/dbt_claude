@@ -1,4 +1,4 @@
-{{ config(enabled=var('claude__using_api_key', True)) }}
+{{ config(enabled=var('claude_using_api_key', True)) }}
 
 with base as (
 

@@ -18,4 +18,14 @@ models:
 
 vars:
   claude:
+    claude_using_cost_report: true
+    claude_using_enterprise_user_cost_report: true
+    claude_using_message_usage_report: true
+    claude_using_enterprise_user_usage_report: true
+    claude_using_claude_code_usage_report: true
+    claude_using_claude_code_usage_report_model_breakdown: true
+    claude_using_users: true
+    claude_using_enterprise_user_actor: true
+    claude_using_api_key: true
+    claude_using_enterprise_user_activity: true
     claude__enterprise_user_activity_pass_through_metrics: []
