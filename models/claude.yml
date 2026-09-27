@@ -32,11 +32,19 @@ models:
         description: >
           Whether the API key is deleted or no longer active. Null on rows not attributed to an
           API key.
-      - name: is_creator_deleted
+      - name: is_api_key_creator_deleted
         description: >
           Whether the user who created the API key is deleted or no longer a member of the
           organization. Null on rows not attributed to an API key, and when the API key's
           creator is not a user.
+      - name: api_key_created_by_name
+        description: >
+          Full name of the user who created the API key. Null on rows not attributed to an API
+          key, and when the API key's creator is not a user.
+      - name: api_key_created_by_email
+        description: >
+          Email address of the user who created the API key. Null on rows not attributed to an
+          API key, and when the API key's creator is not a user.
       - name: model
         description: Claude model the cost and usage apply to.
       - name: model_family

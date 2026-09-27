@@ -147,8 +147,8 @@ usage_without_cost as (
         usage.unit_quantity,
         usage.request,
         usage.server_tool_use_web_search_request,
-        cast(null as {{ dbt.type_float() }}) as claude_cost,
-        cast(null as {{ dbt.type_float() }}) as claude_list_cost,
+        cast(null as {{ dbt.type_numeric() }}) as claude_cost,
+        cast(null as {{ dbt.type_numeric() }}) as claude_list_cost,
         cast(null as {{ dbt.type_string() }}) as currency,
         cast(null as {{ dbt.type_timestamp() }}) as data_refreshed_at
 

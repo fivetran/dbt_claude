@@ -63,9 +63,9 @@ usage as (
         api_key.name as api_key_name,
         api_key.is_deleted as is_api_key_deleted,
         {% if using_users -%}
-        api_key.is_creator_deleted,
-        api_key.created_by_name,
-        api_key.created_by_email,
+        api_key.is_creator_deleted as is_api_key_creator_deleted,
+        api_key.created_by_name as api_key_created_by_name,
+        api_key.created_by_email as api_key_created_by_email,
         {% endif -%}
         {% if using_workspace -%}
         api_key.workspace_name,
@@ -107,9 +107,9 @@ web_search_usage as (
         api_key.name as api_key_name,
         api_key.is_deleted as is_api_key_deleted,
         {% if using_users -%}
-        api_key.is_creator_deleted,
-        api_key.created_by_name,
-        api_key.created_by_email,
+        api_key.is_creator_deleted as is_api_key_creator_deleted,
+        api_key.created_by_name as api_key_created_by_name,
+        api_key.created_by_email as api_key_created_by_email,
         {% endif -%}
         {% if using_workspace -%}
         api_key.workspace_name,
@@ -170,9 +170,9 @@ allocated_by_token_unit_type as (
         share_by_token_unit_type.api_key_name,
         share_by_token_unit_type.is_api_key_deleted,
         {% if using_users -%}
-        share_by_token_unit_type.is_creator_deleted,
-        share_by_token_unit_type.created_by_name,
-        share_by_token_unit_type.created_by_email,
+        share_by_token_unit_type.is_api_key_creator_deleted,
+        share_by_token_unit_type.api_key_created_by_name,
+        share_by_token_unit_type.api_key_created_by_email,
         {% endif -%}
         cost.model,
         cost.cost_type,
@@ -208,9 +208,9 @@ allocated_web_search as (
         share_web_search.api_key_name,
         share_web_search.is_api_key_deleted,
         {% if using_users -%}
-        share_web_search.is_creator_deleted,
-        share_web_search.created_by_name,
-        share_web_search.created_by_email,
+        share_web_search.is_api_key_creator_deleted,
+        share_web_search.api_key_created_by_name,
+        share_web_search.api_key_created_by_email,
         {% endif -%}
         cost.model,
         cost.cost_type,
@@ -267,9 +267,9 @@ unallocated as (
         cast(null as {{ dbt.type_string() }}) as api_key_name,
         cast(null as {{ dbt.type_boolean() }}) as is_api_key_deleted,
         {% if using_users -%}
-        cast(null as {{ dbt.type_boolean() }}) as is_creator_deleted,
-        cast(null as {{ dbt.type_string() }}) as created_by_name,
-        cast(null as {{ dbt.type_string() }}) as created_by_email,
+        cast(null as {{ dbt.type_boolean() }}) as is_api_key_creator_deleted,
+        cast(null as {{ dbt.type_string() }}) as api_key_created_by_name,
+        cast(null as {{ dbt.type_string() }}) as api_key_created_by_email,
         {% endif -%}
         cost.model,
         cost.cost_type,
@@ -315,9 +315,9 @@ final as (
         api_key_name,
         is_api_key_deleted,
         {% if using_users -%}
-        is_creator_deleted,
-        created_by_name,
-        created_by_email,
+        is_api_key_creator_deleted,
+        api_key_created_by_name,
+        api_key_created_by_email,
         {% endif -%}
         model,
         {{ claude.claude_model_family('model') }} as model_family,

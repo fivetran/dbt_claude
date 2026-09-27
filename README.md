@@ -155,7 +155,7 @@ vars:
 Claude cost is currently always reported in USD, so this conversion is safe and enabled by default. If Claude later reports cost in a currency with no minor unit, this variable lets you turn the conversion off without editing the package.
 
 #### Changing the Build Schema
-By default this package will build the Claude staging and intermediate models within a schema titled (<target_schema> + `_stg_claude`) and the final transform models within a schema titled (<target_schema> + `_claude_reports`) in your target database. If this is not where you would like your Claude staging, intermediate, and final models to be written to, add the following configuration to your `dbt_project.yml` file:
+By default this package will build the Claude staging and intermediate models within a schema titled (<target_schema> + `_claude_staging`) and the final transform models within a schema titled (<target_schema> + `_claude_reports`) in your target database. If this is not where you would like your Claude staging, intermediate, and final models to be written to, add the following configuration to your `dbt_project.yml` file:
 
 ```yml
 models:

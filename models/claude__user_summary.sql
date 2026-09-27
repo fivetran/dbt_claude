@@ -218,7 +218,7 @@ final as (
         {% endif %}
 
         -- workspace membership, present only for actors with a matching workspace user
-        {% if using_workspace_member -%}
+        {% if using_workspace_member and using_users -%}
         workspace_rollup.count_workspaces,
         {% if using_workspace -%}
         workspace_names_rollup.workspace_names,
@@ -228,7 +228,7 @@ final as (
         {% endif -%}
 
         -- API keys created by this user, by status
-        {% if using_api_key -%}
+        {% if using_api_key and using_users -%}
             {% for status in api_key_statuses -%}
             api_key_rollup.count_{{ status }}_api_keys,
             {% endfor -%}
@@ -276,21 +276,21 @@ final as (
         and enterprise_user_actor.source_relation = activity_rollup.source_relation
     {% endif %}
 
-    {% if using_workspace_member -%}
+    {% if using_workspace_member and using_users -%}
     left join workspace_rollup
-        on enterprise_user_actor.actor_user_id = workspace_rollup.user_id
-        and enterprise_user_actor.source_relation = workspace_rollup.source_relation
+        on users.user_id = workspace_rollup.user_id
+        and users.source_relation = workspace_rollup.source_relation
     {% if using_workspace -%}
     left join workspace_names_rollup
-        on enterprise_user_actor.actor_user_id = workspace_names_rollup.user_id
-        and enterprise_user_actor.source_relation = workspace_names_rollup.source_relation
+        on users.user_id = workspace_names_rollup.user_id
+        and users.source_relation = workspace_names_rollup.source_relation
     {%- endif %}
     {%- endif %}
 
-    {% if using_api_key %}
+    {% if using_api_key and using_users %}
     left join api_key_rollup
-        on enterprise_user_actor.actor_user_id = api_key_rollup.created_by_id
-        and enterprise_user_actor.source_relation = api_key_rollup.source_relation
+        on users.user_id = api_key_rollup.created_by_id
+        and users.source_relation = api_key_rollup.source_relation
     {% endif %}
 )
 

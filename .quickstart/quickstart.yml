@@ -49,3 +49,8 @@ supported_vars:
     type: dictionary
     description: "Additional numeric `ENTERPRISE_USER_ACTIVITY` metric columns to sum into `claude__user_summary`"
     display_name: "Additional Enterprise User Activity Metrics"
+  claude__convert_cost:
+    type: boolean
+    value: true
+    description: "Divide cost fields (reported by the Claude API in cents) by 100, so costs are reported in major currency units (e.g. dollars for USD) instead."
+    display_name: "Convert Cost to Major Currency Units"
