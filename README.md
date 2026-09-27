@@ -24,7 +24,7 @@ This package enables you to understand Claude API cost and usage, Claude Code de
 Final output tables are generated in the following target schema:
 
 ```
-<your_database>.<target_schema>_claude_reports
+<your_database>.<connector/schema_name>_claude
 ```
 
 ### Final output tables
