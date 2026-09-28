@@ -5,11 +5,19 @@ sources:
     schema: "{{ var('claude_schema', 'anthropic_claude') }}"
     database: "{% if target.type not in ('spark') %}{{ var('claude_database', target.database) }}{% endif %}"
     description: Raw tables synced by the Fivetran Claude (Anthropic) connector.
+
+    loader: fivetran
+
+    config:
+      enabled: "{{ var('claude_sources', []) == [] }}"
+
     tables:
 
       - name: cost_report
         identifier: "{{ var('claude__cost_report_identifier', 'cost_report') }}"
         description: Organization-level cost report. Each row is one billing line item for a given model, token type, and time period.
+        config:
+          enabled: "{{ var('claude__using_cost_report', true) and var('claude_sources', []) == []}}"
         columns:
           - name: _fivetran_id
             description: Fivetran-generated unique identifier for the row.
@@ -45,6 +53,8 @@ sources:
       - name: enterprise_user_cost_report
         identifier: "{{ var('claude__enterprise_user_cost_report_identifier', 'enterprise_user_cost_report') }}"
         description: Per-user cost report for enterprise accounts. Each row is the cost for one actor over a time period.
+        config:
+          enabled: "{{ var('claude__using_enterprise_user_cost_report', true) and var('claude_sources', []) == []}}"
         columns:
           - name: _fivetran_id
             description: Fivetran-generated unique identifier for the row.
@@ -86,6 +96,8 @@ sources:
       - name: message_usage_report
         identifier: "{{ var('claude__message_usage_report_identifier', 'message_usage_report') }}"
         description: API message usage report. Each row is the token usage for one API request bucket.
+        config:
+          enabled: "{{ var('claude__using_message_usage_report', true) and var('claude_sources', []) == []}}"
         columns:
           - name: _fivetran_id
             description: Fivetran-generated unique identifier for the row.
@@ -123,6 +135,8 @@ sources:
       - name: enterprise_user_usage_report
         identifier: "{{ var('claude__enterprise_user_usage_report_identifier', 'enterprise_user_usage_report') }}"
         description: Per-user token usage report for enterprise accounts. Each row is the usage for one actor over a time period.
+        config:
+          enabled: "{{ var('claude__using_enterprise_user_usage_report', true) and var('claude_sources', []) == []}}"
         columns:
           - name: _fivetran_id
             description: Fivetran-generated unique identifier for the row.
@@ -170,6 +184,8 @@ sources:
       - name: claude_code_usage_report
         identifier: "{{ var('claude__claude_code_usage_report_identifier', 'claude_code_usage_report') }}"
         description: Claude Code usage report. Each row is the activity for one actor on one day.
+        config:
+          enabled: "{{ var('claude__using_claude_code_usage_report', true) and var('claude_sources', []) == []}}"
         columns:
           - name: _fivetran_id
             description: Fivetran-generated unique identifier for the row.
@@ -205,6 +221,8 @@ sources:
       - name: claude_code_usage_report_model_breakdown
         identifier: "{{ var('claude__claude_code_usage_report_model_breakdown_identifier', 'claude_code_usage_report_model_breakdown') }}"
         description: Token and cost breakdown by model for each Claude Code usage report row. Unique on claude_code_usage_report_fivetran_id and model.
+        config:
+          enabled: "{{ var('claude__using_claude_code_usage_report_model_breakdown', true) and var('claude_sources', []) == []}}"
         columns:
           - name: claude_code_usage_report_fivetran_id
             description: Foreign key to claude_code_usage_report._fivetran_id.
@@ -230,6 +248,8 @@ sources:
       - name: users
         identifier: "{{ var('claude__users_identifier', 'users') }}"
         description: Workspace users with role and membership metadata.
+        config:
+          enabled: "{{ var('claude__using_users', true) and var('claude_sources', []) == []}}"
         columns:
           - name: id
             description: Unique identifier for the user.
@@ -251,6 +271,8 @@ sources:
       - name: enterprise_user_actor
         identifier: "{{ var('claude__enterprise_user_actor_identifier', 'enterprise_user_actor') }}"
         description: Enterprise actors referenced by the usage and cost reports. An actor is either a user or an API key.
+        config:
+          enabled: "{{ var('claude__using_enterprise_user_actor', true) and var('claude_sources', []) == []}}"
         columns:
           - name: id
             description: Unique identifier for the actor.
@@ -270,6 +292,8 @@ sources:
       - name: api_key
         identifier: "{{ var('claude__api_key_identifier', 'api_key') }}"
         description: API keys belonging to the organization's workspaces.
+        config:
+          enabled: "{{ var('claude__using_api_key', true) and var('claude_sources', []) == []}}"
         columns:
           - name: id
             description: Unique identifier for the API key.
@@ -298,7 +322,7 @@ sources:
         identifier: "{{ var('claude__workspace_identifier', 'workspace') }}"
         description: Workspaces within the organization. Workspaces group API keys and scope usage and cost reporting.
         config:
-          enabled: "{{ var('claude__using_workspace', true) }}"
+          enabled: "{{ var('claude__using_workspace', true) and var('claude_sources', []) == []}}"
         columns:
           - name: id
             description: Unique identifier for the workspace.
@@ -324,6 +348,8 @@ sources:
       - name: enterprise_user_activity
         identifier: "{{ var('claude__enterprise_user_activity_identifier', 'enterprise_user_activity') }}"
         description: Daily per-user activity metrics across Anthropic product surfaces. One row per user per day.
+        config:
+          enabled: "{{ var('claude__using_enterprise_user_activity', true) and var('claude_sources', []) == []}}"
         columns:
           - name: date
             description: Date the activity occurred.
@@ -460,7 +486,7 @@ sources:
         identifier: "{{ var('claude__workspace_member_identifier', 'workspace_member') }}"
         description: Membership records linking users to the workspaces they belong to. Unique on user_id and workspace_id.
         config:
-          enabled: "{{ var('claude__using_workspace_member', true) }}"
+          enabled: "{{ var('claude__using_workspace_member', true) and var('claude_sources', []) == []}}"
         columns:
           - name: user_id
             description: Identifier of the user.
@@ -481,7 +507,7 @@ sources:
         identifier: "{{ var('claude__organization_identifier', 'organization') }}"
         description: The organization the Claude account belongs to. Unique on id.
         config:
-          enabled: "{{ var('claude__using_organization', true) }}"
+          enabled: "{{ var('claude__using_organization', true) and var('claude_sources', []) == []}}"
         columns:
           - name: id
             description: Unique identifier for the organization.

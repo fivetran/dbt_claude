@@ -13,7 +13,9 @@ models:
       - name: workspace_id
         description: ID of the Workspace this cost is associated with.
       - name: amount
-        description: Cost amount in lowest currency units (e.g. cents).
+        description: >
+          Cost amount in major currency units (e.g. dollars for USD). The source reports this
+          in minor currency units (e.g. cents); this model divides by 100 to convert.
       - name: cost_type
         description: Category of cost ("code_execution", "session_usage", "tokens", "web_search").
       - name: starting_at
@@ -57,9 +59,14 @@ models:
       - name: product
         description: Anthropic product surface that produced the cost ("chat", "claude_code", "cowork", "office_agent", "claude_in_chrome", "claude_design", "claude-tag" aka Claude in Slack, "other").
       - name: amount
-        description: Amount (post-discount, pre-credit) in fractional cents (minor units).
+        description: >
+          Amount (post-discount, pre-credit) in major currency units (e.g. dollars for USD).
+          The source reports this in fractional cents (minor units); this model divides by
+          100 to convert.
       - name: list_amount
-        description: List-price amount (pre-discount) in fractional cents.
+        description: >
+          List-price amount (pre-discount) in major currency units (e.g. dollars for USD).
+          The source reports this in fractional cents; this model divides by 100 to convert.
       - name: starting_date
         description: Start of the reporting period (cast to date).
       - name: ending_date
@@ -237,7 +244,10 @@ models:
       - name: tokens_cache_creation
         description: Number of cache creation tokens consumed by this model.
       - name: estimated_cost_amount
-        description: Estimated cost amount in minor currency units (e.g., cents for USD).
+        description: >
+          Estimated cost amount in major currency units (e.g., dollars for USD). The source
+          reports this in minor currency units (e.g. cents); this model divides by 100 to
+          convert.
       - name: tokens_cache_read
         description: Number of cache read tokens consumed by this model.
       - name: _fivetran_synced
