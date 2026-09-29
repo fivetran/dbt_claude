@@ -145,7 +145,7 @@ vars:
 > Please create an [issue](https://github.com/fivetran/dbt_claude/issues) if you'd like to see passthrough column support for other tables in the Claude schema.
 
 #### Enabling Cent to Dollar Conversion
-Cost-based fields, such as `amount` and `estimated_cost_amount`, are reported by the Claude API in the smallest denomination of the currency (cents, or fractional cents on some endpoints, for USD). By default, this package divides these fields by 100 in staging so every downstream cost column is in major currency units (dollars for USD) instead.
+The Claude API reports cost-based fields, such as `amount` and `estimated_cost_amount`, are reported by the Claude API in the smallest denomination of the currency (cents, or fractional cents on some endpoints, for USD). By default, this package divides these fields by 100 in staging so every downstream cost column is in major currency units (dollars for USD) instead.
 
 If you'd rather keep these fields in their raw, undivided form, set `claude__convert_cost` to `false` in your `dbt_project.yml`:
 
