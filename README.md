@@ -20,6 +20,8 @@ This dbt package transforms data from Fivetran's Claude connector into analytics
 ## What does this dbt package do?
 This package enables you to understand Claude API cost and usage, Claude Code developer activity, and enterprise user cost and engagement at your company. It allocates organization-level cost down to the API key that consumed it, joins per-user enterprise cost to per-user token usage, and rolls up cost, usage, and product activity into a single summary per enterprise user.
 
+This package is also designed to roll up alongside Fivetran's Claude/Anthropic dbt package into [AI Reporting package](https://github.com/fivetran/dbt_ai_reporting), which combines this data with Fivetran's OpenAI dbt package into unified, cross-vendor AI usage and cost reporting models.
+
 ### Output schema
 Final output tables are generated in the following target schema:
 
@@ -56,8 +58,8 @@ You can either add this dbt package in the Fivetran dashboard or import it into 
 
 <!--section-end-->
 
-### Install the package
-Include the following claude package version in your `packages.yml` file:
+### Install the package (skip if also using the ai_reporting combo package)
+Include the following claude package version in your `packages.yml` file if you are not also using the upstream [AI Reporting](https://github.com/fivetran/dbt_ai_reporting) combination package:
 > TIP: Check [dbt Hub](https://hub.getdbt.com/) for the latest installation instructions or [read the dbt docs](https://docs.getdbt.com/docs/package-management) for more information on installing packages.
 ```yaml
 packages:

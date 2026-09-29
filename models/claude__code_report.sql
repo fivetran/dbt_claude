@@ -72,7 +72,7 @@ final as (
 
         -- an actor is either a person, identified by email, or an api key, identified by name
         claude_code_usage_report.actor_type,
-        claude_code_usage_report.actor_email_address,
+        claude_code_usage_report.actor_email_address as actor_email,
         claude_code_usage_report.actor_api_key_name,
         {% if using_users %}
         users.user_id as user_id,

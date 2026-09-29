@@ -28,7 +28,7 @@ sources:
           - name: cost_type
             description: Category of cost ("code_execution", "session_usage", "tokens", "web_search").
           - name: starting_at
-            description: Start of the billing period,
+            description: Start of the billing period.
           - name: ending_at
             description: End of the billing period.
           - name: description
@@ -277,7 +277,7 @@ sources:
           - name: id
             description: Unique identifier for the actor.
           - name: deleted
-            description: True when the account has been deleted, or when the user is no longer a member of the organization or its associated organizations
+            description: True when the account has been deleted, or when the user is no longer a member of the organization or its associated organizations.
           - name: name
             description: Full name of the user actor, if provided. May be "Deleted User" for deleted or deprovisioned accounts.
           - name: type
@@ -310,7 +310,7 @@ sources:
           - name: created_at
             description: Timestamp when the API key was created.
           - name: created_by_id
-            description: Identifier of the actor that created the API key. null when the creator is not recorded (legacy, workload-identity-federated, or system-created keys).
+            description: Identifier of the actor that created the API key. NULL when the creator is not recorded (legacy, workload-identity-federated, or system-created keys).
           - name: created_by_type
             description: Type of actor that created the API key ("service_account", "user").
           - name: _fivetran_deleted
