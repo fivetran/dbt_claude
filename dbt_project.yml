@@ -9,7 +9,6 @@ models:
     +materialized: table
     intermediate:
       +materialized: ephemeral
-      +schema: claude_staging
     staging:
       +schema: claude_staging
       +materialized: view

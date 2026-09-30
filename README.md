@@ -20,7 +20,7 @@ This dbt package transforms data from Fivetran's Claude connector into analytics
 ## What does this dbt package do?
 This package enables you to understand Claude API cost and usage, Claude Code developer activity, and enterprise user cost and engagement at your company. It allocates organization-level cost down to the API key that consumed it, joins per-user enterprise cost to per-user token usage, and rolls up cost, usage, and product activity into a single summary per enterprise user.
 
-This package is also designed to roll up alongside Fivetran's Claude/Anthropic dbt package into [AI Reporting package](https://github.com/fivetran/dbt_ai_reporting), which combines this data with Fivetran's OpenAI dbt package into unified, cross-vendor AI usage and cost reporting models.
+This package is also designed to roll up alongside Fivetran's [OpenAI](https://github.com/fivetran/dbt_openai) dbt package into the [AI Reporting](https://github.com/fivetran/dbt_ai_reporting) package, which combines Claude and OpenAI data into unified, cross-vendor AI usage and cost reporting models.
 
 ### Output schema
 Final output tables are generated in the following target schema:
@@ -144,8 +144,8 @@ vars:
 
 > Please create an [issue](https://github.com/fivetran/dbt_claude/issues) if you'd like to see passthrough column support for other tables in the Claude schema.
 
-#### Enabling Cent to Dollar Conversion
-The Claude API reports cost-based fields, such as `amount` and `estimated_cost_amount`, are reported by the Claude API in the smallest denomination of the currency (cents, or fractional cents on some endpoints, for USD). By default, this package divides these fields by 100 in staging so every downstream cost column is in major currency units (dollars for USD) instead.
+#### Configuring Cent to Dollar Conversion
+The Claude API reports cost-based fields, such as `amount` and `estimated_cost_amount`, in the smallest denomination of the currency (cents, or fractional cents on some endpoints, for USD). By default, this package divides these fields by 100 in staging so every downstream cost column is in major currency units (dollars for USD) instead.
 
 If you'd rather keep these fields in their raw, undivided form, set `claude__convert_cost` to `false` in your `dbt_project.yml`:
 
@@ -157,15 +157,13 @@ vars:
 Claude cost is currently always reported in USD, so this conversion is safe and enabled by default. If Claude later reports cost in a currency with no minor unit, this variable lets you turn the conversion off without editing the package.
 
 #### Changing the Build Schema
-By default this package will build the Claude staging and intermediate models within a schema titled (<target_schema> + `_claude_staging`) and the final transform models within a schema titled (<target_schema> + `_claude_reports`) in your target database. If this is not where you would like your Claude staging, intermediate, and final models to be written to, add the following configuration to your `dbt_project.yml` file:
+By default this package will build the Claude staging models within a schema titled (<target_schema> + `_claude_staging`) and the final transform models within a schema titled (<target_schema> + `_claude_reports`) in your target database. If this is not where you would like your Claude staging and final models to be written to, add the following configuration to your `dbt_project.yml` file:
 
 ```yml
 models:
     claude:
       +schema: my_new_schema_name # Leave +schema: blank to use the default target_schema.
       staging:
-        +schema: my_new_schema_name # Leave +schema: blank to use the default target_schema.
-      intermediate: # ephemeral by default
         +schema: my_new_schema_name # Leave +schema: blank to use the default target_schema.
 ```
 

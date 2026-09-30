@@ -5,6 +5,20 @@ profile: 'integration_tests'
 
 vars:
   claude_schema: claude_integration_tests
+  claude:
+    claude__cost_report_identifier: "cost_report"
+    claude__enterprise_user_cost_report_identifier: "enterprise_user_cost_report"
+    claude__message_usage_report_identifier: "message_usage_report"
+    claude__enterprise_user_usage_report_identifier: "enterprise_user_usage_report"
+    claude__claude_code_usage_report_identifier: "claude_code_usage_report"
+    claude__claude_code_usage_report_model_breakdown_identifier: "claude_code_usage_report_model_breakdown"
+    claude__users_identifier: "users"
+    claude__enterprise_user_actor_identifier: "enterprise_user_actor"
+    claude__api_key_identifier: "api_key"
+    claude__workspace_identifier: "workspace"
+    claude__enterprise_user_activity_identifier: "enterprise_user_activity"
+    claude__workspace_member_identifier: "workspace_member"
+    claude__organization_identifier: "organization"
 
 dispatch:
   - macro_namespace: dbt_utils
