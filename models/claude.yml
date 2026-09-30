@@ -8,13 +8,14 @@ models:
       tier, context window and inference geo are summed away because the cost report breaks
       cost out by inference geo, which message usage never reports. Cost that cannot be
       attributed to an API key is still carried, so `claude_cost` sums to the total in
-      `stg_claude__cost_report`. Aligned with `int_anthropic_platform_cost_usage` in the
-      internal analytics project.
+      `stg_claude__cost_report`.
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
       - name: date_day
         description: Day the cost and usage apply to.
+        tests:
+          - not_null
       - name: workspace_id
         description: >
           ID of the Workspace the cost and usage belong to. Message usage does not always
@@ -93,13 +94,14 @@ models:
       model, cost type and token type. Speed, context window and inference geo are summed away
       so both sides share a grain. The Analytics API reports per-user cost directly, so cost
       drives the grain and usage attaches to it; usage with no matching cost row is still
-      carried. Aligned with `int_anthropic_enterprise_cost_usage` in the internal analytics
-      project.
+      carried.
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
       - name: date_day
         description: Day the cost and usage apply to.
+        tests:
+          - not_null
       - name: organization_id
         description: Identifier of the organization. Joins to `stg_claude__organization.organization_id`.
       - name: organization_name
@@ -177,6 +179,8 @@ models:
         description: "{{ doc('source_relation') }}"
       - name: user_id
         description: Unique identifier for the enterprise actor.
+        tests:
+          - not_null
       - name: workspace_user_id
         description: >
           Identifier of the matching workspace user. Null for actors with no workspace user
@@ -320,6 +324,8 @@ models:
         description: "{{ doc('source_relation') }}"
       - name: claude_code_usage_report_id
         description: Fivetran-generated unique identifier for the usage report row.
+        tests:
+          - not_null
       - name: report_date
         description: Date the Claude Code activity occurred.
       - name: organization_id
@@ -330,7 +336,7 @@ models:
         description: Type of customer account ("api" for API customers, "subscription" for Pro/Team customers).
       - name: actor_type
         description: Type of actor ("api_actor", "user_actor").
-      - name: actor_email_address
+      - name: actor_email
         description: Email address of the actor. Populated only when `actor_type` is "user_actor".
       - name: actor_api_key_name
         description: Name of the API key. Populated only when `actor_type` is "api_actor".

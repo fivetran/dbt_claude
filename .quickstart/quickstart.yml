@@ -38,10 +38,10 @@ destination_configurations:
         search_order: [ 'spark_utils', 'dbt_utils' ]
 
 public_models: [
-  claude__platform_cost_usage_report,
-  claude__enterprise_cost_usage_report,
-  claude__code_report,
-  claude__user_summary
+  "claude__platform_cost_usage_report",
+  "claude__enterprise_cost_usage_report",
+  "claude__code_report",
+  "claude__user_summary"
 ]
 
 supported_vars:
