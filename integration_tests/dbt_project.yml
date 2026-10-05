@@ -1,24 +1,24 @@
 name: 'claude_integration_tests'
-version: '0.1.0'
+version: '1.0.1'
 config-version: 2
 profile: 'integration_tests'
 
 vars:
   claude_schema: claude_integration_tests
   claude:
-    claude__cost_report_identifier: "cost_report"
-    claude__enterprise_user_cost_report_identifier: "enterprise_user_cost_report"
-    claude__message_usage_report_identifier: "message_usage_report"
-    claude__enterprise_user_usage_report_identifier: "enterprise_user_usage_report"
-    claude__claude_code_usage_report_identifier: "claude_code_usage_report"
-    claude__claude_code_usage_report_model_breakdown_identifier: "claude_code_usage_report_model_breakdown"
-    claude__users_identifier: "users"
-    claude__enterprise_user_actor_identifier: "enterprise_user_actor"
-    claude__api_key_identifier: "api_key"
-    claude__workspace_identifier: "workspace"
-    claude__enterprise_user_activity_identifier: "enterprise_user_activity"
-    claude__workspace_member_identifier: "workspace_member"
-    claude__organization_identifier: "organization"
+    claude_cost_report_identifier: "cost_report"
+    claude_enterprise_user_cost_report_identifier: "enterprise_user_cost_report"
+    claude_message_usage_report_identifier: "message_usage_report"
+    claude_enterprise_user_usage_report_identifier: "enterprise_user_usage_report"
+    claude_claude_code_usage_report_identifier: "claude_code_usage_report"
+    claude_claude_code_usage_report_model_breakdown_identifier: "claude_code_usage_report_model_breakdown"
+    claude_users_identifier: "users"
+    claude_enterprise_user_actor_identifier: "enterprise_user_actor"
+    claude_api_key_identifier: "api_key"
+    claude_workspace_identifier: "workspace"
+    claude_enterprise_user_activity_identifier: "enterprise_user_activity"
+    claude_workspace_member_identifier: "workspace_member"
+    claude_organization_identifier: "organization"
 
 dispatch:
   - macro_namespace: dbt_utils
