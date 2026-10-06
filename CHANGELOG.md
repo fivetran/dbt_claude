@@ -1,4 +1,4 @@
-# dbt_claude v1.0.1
+# dbt_claude v0.1.1
 
 ## Under the Hood
 
