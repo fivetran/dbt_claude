@@ -1,5 +1,7 @@
 # dbt_claude v0.1.1
 
+[PR #5](https://github.com/fivetran/dbt_claude/pull/5) includes the following updates: 
+
 ## Under the Hood
 
 - Renames all [source identifier](https://github.com/fivetran/dbt_claude#change-the-source-table-references) variables from `claude__<table>_identifier` to `claude_<table>_identifier` (single underscore prefix instead of double). If you have set any of these variables in your `dbt_project.yml`, update them to the new names.
