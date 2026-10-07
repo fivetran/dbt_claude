@@ -1,5 +1,22 @@
 {{ config(enabled=var('claude__using_workspace_member', True)) }}
 
+{% if var('claude_union_schemas', []) | length > 0 or var('claude_union_databases', []) | length > 0 %}
+
+{{
+    fivetran_utils.union_data(
+        table_identifier='workspace_member',
+        database_variable='claude_database',
+        schema_variable='claude_schema',
+        default_database=target.database,
+        default_schema='anthropic_claude',
+        default_variable='workspace_member',
+        union_schema_variable='claude_union_schemas',
+        union_database_variable='claude_union_databases'
+    )
+}}
+
+{% else %}
+
 {{
     fivetran_utils.union_connections(
         connection_dictionary='claude_sources',
@@ -7,3 +24,5 @@
         single_table_name='workspace_member'
     )
 }}
+
+{% endif %}

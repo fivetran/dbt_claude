@@ -3,6 +3,7 @@
 ## Under the Hood
 
 - Renames all [source identifier](https://github.com/fivetran/dbt_claude#change-the-source-table-references) variables from `claude__<table>_identifier` to `claude_<table>_identifier` (single underscore prefix instead of double). If you have set any of these variables in your `dbt_project.yml`, update them to the new names.
+- Ensures package is backwards-compatible with previous the previous `union_data` macro.
 
 # dbt_claude v0.1.0
 
