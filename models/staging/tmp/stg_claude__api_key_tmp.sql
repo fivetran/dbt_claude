@@ -1,5 +1,22 @@
 {{ config(enabled=var('claude__using_api_key', True)) }}
 
+{% if var('claude_union_schemas', []) | length > 0 or var('claude_union_databases', []) | length > 0 %}
+
+{{
+    fivetran_utils.union_data(
+        table_identifier='api_key', 
+        database_variable='claude_database', 
+        schema_variable='claude_schema', 
+        default_database=target.database,
+        default_schema='anthropic_claude',
+        default_variable='api_key',
+        union_schema_variable='claude_union_schemas',
+        union_database_variable='claude_union_databases'
+    )
+}}
+
+{% else %}
+
 {{
     fivetran_utils.union_connections(
         connection_dictionary='claude_sources',
@@ -7,3 +24,5 @@
         single_table_name='api_key'
     )
 }}
+
+{% endif %}
