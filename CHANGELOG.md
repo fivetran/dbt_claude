@@ -5,7 +5,7 @@
 ## Under the Hood
 
 - Renames all [source identifier](https://github.com/fivetran/dbt_claude#change-the-source-table-references) variables from `claude__<table>_identifier` to `claude_<table>_identifier` (single underscore prefix instead of double). If you have set any of these variables in your `dbt_project.yml`, update them to the new names.
-- Ensures the package is backwards-compatible with the `union_data` macro.
+- Ensures the package is backwards-compatible with the `union_data` macro, which is leveraged in Quickstart for the downstream [AI Reporting](https://github.com/fivetran/dbt_ai_reporting) rollup package.
 
 # dbt_claude v0.1.0
 
