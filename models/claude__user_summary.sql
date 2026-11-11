@@ -167,7 +167,7 @@ workspace_names_rollup as (
     select
         workspace_member.source_relation,
         workspace_member.user_id,
-        {{ fivetran_utils.string_agg('distinct workspace.name', "', '") }} as workspace_names
+        {{ dbt.listagg('distinct workspace.name', "', '") }} as workspace_names
     from workspace_member
     left join workspace
         on workspace_member.workspace_id = workspace.workspace_id
