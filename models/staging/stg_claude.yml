@@ -3,6 +3,12 @@ version: 2
 models:
   - name: stg_claude__cost_report
     description: Staged organization-level cost report. Each row represents one billing line item for a given model, token type, and time period.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - cost_report_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -47,6 +53,12 @@ models:
 
   - name: stg_claude__enterprise_user_cost_report
     description: Staged per-user cost report for enterprise accounts. Each row represents cost for one actor over a time period.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - enterprise_user_cost_report_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -98,6 +110,12 @@ models:
 
   - name: stg_claude__message_usage_report
     description: Staged API message usage report. Each row represents token usage for one API request bucket.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - message_usage_report_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -140,6 +158,12 @@ models:
 
   - name: stg_claude__enterprise_user_usage_report
     description: Staged per-user token usage report for enterprise accounts.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - enterprise_user_usage_report_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -188,6 +212,12 @@ models:
 
   - name: stg_claude__claude_code_usage_report
     description: Staged Claude Code usage report. Each row represents activity for one actor on one day.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - claude_code_usage_report_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -224,6 +254,13 @@ models:
 
   - name: stg_claude__claude_code_usage_report_model_breakdown
     description: Staged token and cost breakdown by model for each Claude Code usage report row.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - claude_code_usage_report_fivetran_id
+              - model
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -255,6 +292,12 @@ models:
 
   - name: stg_claude__users
     description: Staged workspace users with role and membership metadata.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - user_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -277,6 +320,12 @@ models:
 
   - name: stg_claude__enterprise_user_actor
     description: Staged enterprise actors referenced in usage and cost reports.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - actor_user_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -295,6 +344,12 @@ models:
 
   - name: stg_claude__api_key
     description: Staged API keys belonging to the organization's workspaces.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - api_key_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -323,6 +378,12 @@ models:
 
   - name: stg_claude__workspace
     description: Staged workspaces within the organization. Workspaces group API keys and scope usage and cost reporting.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - workspace_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -349,6 +410,13 @@ models:
 
   - name: stg_claude__enterprise_user_activity
     description: Staged daily per-user activity metrics across Anthropic product surfaces. One row per user per day.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - activity_date
+              - user_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -405,6 +473,13 @@ models:
 
   - name: stg_claude__workspace_member
     description: Staged membership records linking users to the workspaces they belong to.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - workspace_id
+              - user_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
@@ -425,6 +500,12 @@ models:
 
   - name: stg_claude__organization
     description: Staged organization the Claude account belongs to.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - source_relation
+              - organization_id
     columns:
       - name: source_relation
         description: "{{ doc('source_relation') }}"
