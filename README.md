@@ -15,7 +15,7 @@ This dbt package transforms data from Fivetran's Claude connector into analytics
   - [DAG](https://fivetran.github.io/dbt_claude/#!/overview?g_v=1)
   - [Changelog](https://github.com/fivetran/dbt_claude/blob/main/CHANGELOG.md)
 - dbt Core™ supported versions
-  - `>=1.3.0, <3.0.0`
+  - `>=1.10.0, <3.0.0`
 
 ## What does this dbt package do?
 This package enables you to understand Claude API cost and usage, Claude Code developer activity, and enterprise user cost and engagement at your company. It allocates organization-level cost down to the API key that consumed it, joins per-user enterprise cost to per-user token usage, and rolls up cost, usage, and product activity into a single summary per enterprise user.
@@ -64,7 +64,7 @@ Include the following claude package version in your `packages.yml` file if you 
 ```yaml
 packages:
   - package: fivetran/claude
-    version: [">=0.1.0", "<0.2.0"]
+    version: [">=0.2.0", "<0.3.0"]
 ```
 
 ### Define database and schema variables
