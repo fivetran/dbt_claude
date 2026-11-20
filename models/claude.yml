@@ -25,7 +25,7 @@ models:
         description: "{{ doc('source_relation') }}"
       - name: date_day
         description: Day the cost and usage apply to.
-        tests:
+        data_tests:
           - not_null
       - name: workspace_id
         description: >
@@ -122,7 +122,7 @@ models:
         description: "{{ doc('source_relation') }}"
       - name: date_day
         description: Day the cost and usage apply to.
-        tests:
+        data_tests:
           - not_null
       - name: organization_id
         description: Identifier of the organization. Joins to `stg_claude__organization.organization_id`.
@@ -207,7 +207,7 @@ models:
         description: "{{ doc('source_relation') }}"
       - name: user_id
         description: Unique identifier for the enterprise actor.
-        tests:
+        data_tests:
           - not_null
       - name: workspace_user_id
         description: >
@@ -358,7 +358,7 @@ models:
         description: "{{ doc('source_relation') }}"
       - name: claude_code_usage_report_id
         description: Fivetran-generated unique identifier for the usage report row.
-        tests:
+        data_tests:
           - not_null
       - name: report_date
         description: Date the Claude Code activity occurred.
